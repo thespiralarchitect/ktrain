@@ -1,8 +1,7 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"fmt"
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
@@ -10,6 +9,9 @@ import (
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -42,7 +44,10 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+		r.Put("/update", userHandler.UpdateUser)
+		r.Delete("/delete/{id}", userHandler.DeleteUser)
 	})
-
+	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)
+
 }

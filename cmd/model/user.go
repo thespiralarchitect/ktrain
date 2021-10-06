@@ -14,6 +14,7 @@ type User struct {
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
+
 type AuthToken struct {
 	ID        int64  `gorm:"type:integer"`
 	UserID    int64  `gorm:"type:integer"`
