@@ -19,7 +19,7 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	user, err := h.userRepository.GetUserByID(ctx.Value("keyID").(int64))
+	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
