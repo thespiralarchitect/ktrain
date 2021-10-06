@@ -7,7 +7,7 @@ import (
 )
 
 func BindDefault(serviceName string) error {
-	filePath := fmt.Sprintf("cmd/api/%s/config.yaml", serviceName)
+	filePath := fmt.Sprintf("../%s/config.yaml", serviceName)
 	info, err := os.Stat(filePath)
 	if err != nil {
 		return err

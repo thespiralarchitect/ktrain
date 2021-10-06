@@ -42,7 +42,14 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+		r.Get("/users",userHandler.GetListUsers)
+		r.Get("/users/{id}",userHandler.GetInformationUser)
+	})
+	r.Route("/users", func(r chi.Router){
+		userRepository := repository.NewUserRepository(psqlDB)
+		userHandler := handler.NewUserHandler(userRepository)
+		r.Post("/",userHandler.PostNewUser)
 	})
 
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":3333", r)
 }
