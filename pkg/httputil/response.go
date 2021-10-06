@@ -11,7 +11,28 @@ type baseResponse struct {
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
+type failedRequest struct {
+	Success   bool `json:"success"`
+	Messagess []string
+}
 
+func RespondJSONValidator(w http.ResponseWriter, statusCode int, payload []string) {
+	result := failedRequest{}
+	result.Success = false
+	for _, v := range payload {
+		result.Messagess = append(result.Messagess, v)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(result.Messagess)))
+	w.WriteHeader(statusCode)
+	resp, err := json.Marshal(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(err.Error()))
+		return
+	}
+	w.Write(resp)
+}
 func respondJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
 	data, err := json.Marshal(payload)
 	if err != nil {

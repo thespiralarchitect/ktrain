@@ -2,22 +2,27 @@ package model
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
 type User struct {
-	ID         int64       `gorm:"type:integer"`
-	Fullname   string      `gorm:"type:character varying(255)"`
-	Username   string      `gorm:"type:character varying(255)"`
-	Gender     string      `gorm:"type:character varying(10)"`
-	Birthday   time.Time   `gorm:"type:timestamp"`
-	AuthTokens []AuthToken `gorm:"foreignKey:UserID;references:ID"`
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
+	Id          int64  `gorm:"type:integer;not null:primarykey"`
+	Fullname    string `gorm :"type:varchar(255) ;not null"`
+	Username    string `gorm :"type:varchar(255) ;not null"`
+	Gender      string `gorm :"type:varchar(10) ;not null"`
+	Birthday    string `gorm :"type:varchar(10) ;not null"`
+	CreatedAt   time.Time
+	UpdateAt    time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
+	Auth_tokens []*Auth_token  `gorm:"foreignKey:UserID;references:Id;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }
-type AuthToken struct {
-	ID        int64  `gorm:"type:integer"`
-	UserID    int64  `gorm:"type:integer"`
-	Token     string `gorm:"type:character varying(255)"`
+
+type Auth_token struct {
+	Id        int64  `gorm:"type:integer;not null:primarykey"`
+	UserID    int64  `gorm:"type:integer;not null"`
+	Tocken    string `gorm :"type:varchar(255) ;not null"`
 	CreatedAt time.Time
-	UpdatedAt time.Time
+	UpdateAt  time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
