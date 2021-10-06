@@ -6,12 +6,19 @@ import (
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
+	"ktrain/pkg/config"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
 )
 
 func main() {
+	err := config.BindDefault("user-api")
+	if err != nil {
+		log.Fatalf("Error when binding config, err: %v", err)
+		return
+	}
+
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
