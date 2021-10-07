@@ -2,8 +2,7 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator"
+	"fmt"
 	"io/ioutil"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
@@ -13,6 +12,10 @@ import (
 	"ktrain/pkg/httputil"
 	"net/http"
 	"strconv"
+	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator"
 )
 
 var validate *validator.Validate
@@ -35,11 +38,13 @@ func readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest)
 		return
 	}
 	err = json.Unmarshal(b, &u)
+	fmt.Printf("%v\n", u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
 		return
 	}
-	err = validate.Struct(&u)
+
+	err = validate.Struct(u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error validate  body request")
 		return
@@ -91,11 +96,12 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	var u dto.UserRequest
 	readBodyRequest(w, r, &u)
+	birthday, _ := time.Parse("020106 150405", u.Birthday)
 	User := &model.User{
 		Fullname: u.Fullname,
 		Username: u.Username,
 		Gender:   u.Gender,
-		Birthday: u.Birthday,
+		Birthday: birthday,
 	}
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {
