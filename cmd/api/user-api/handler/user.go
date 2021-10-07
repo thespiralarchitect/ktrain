@@ -12,8 +12,9 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator"
 )
-
+var validate	*validator.Validate
 type userHandler struct {
 	userRepository repository.IUserRepository
 }
@@ -24,6 +25,7 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 	}
 }
 func readBodyRequest (w http.ResponseWriter,r *http.Request, u *httpreq.UserRequest )  {
+	validate = validator.New()
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
     if err != nil {
@@ -33,6 +35,11 @@ func readBodyRequest (w http.ResponseWriter,r *http.Request, u *httpreq.UserRequ
 	err2 := json.Unmarshal(b,&u)
 	if err2 != nil {
         httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
+        return
+    }
+	err3 := validate.Struct(&u)
+	if err3 != nil {
+        httputil.RespondError(w, http.StatusForbidden, "Error validate  body request")
         return
     }
 }
@@ -79,17 +86,6 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request){
 	var u httpreq.UserRequest
 	readBodyRequest(w,r,&u)
-	// b, err := ioutil.ReadAll(r.Body)
-	// defer r.Body.Close()
-    // if err != nil {
-    //     httputil.RespondError(w, http.StatusInternalServerError, "Error read body")
-    //     return
-    // }
-	// err2 := json.Unmarshal(b,&u)
-	// if err2 != nil {
-    //     httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
-    //     return
-    // }
 	User := &model.User{
 		Fullname:   u.Fullname,
 		Username:   u.Username,
