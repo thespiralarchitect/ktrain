@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
@@ -37,7 +36,6 @@ func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u 
 		return false
 	}
 	err = json.Unmarshal(b, &u)
-	fmt.Printf("%v\n", u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
 		return false
@@ -84,7 +82,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	user, err := h.userRepository.GetUserByID(int64(userID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
-			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
+			httputil.RespondError(w, http.StatusNotFound, "User not found")
 			return
 		}
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
