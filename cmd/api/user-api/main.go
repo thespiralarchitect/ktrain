@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"ktrain/cmd/api/user-api/handler"
@@ -12,8 +13,16 @@ import (
 	"net/http"
 )
 
+
+var (
+	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
+)
+
 func main() {
-	err := config.BindDefault("user-api")
+	// parse command-line flags
+	flag.Parse()
+
+	err := config.BindDefault(*configPath)
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
@@ -46,5 +55,5 @@ func main() {
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Post("/users", userHandler.PostNewUser)
 	})
-	http.ListenAndServe(":3333", r)
+	http.ListenAndServe(":8080", r)
 }
