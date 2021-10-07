@@ -32,18 +32,18 @@ func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u 
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error read body")
+		httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
 		return false
 	}
 	err = json.Unmarshal(b, &u)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
+		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
 		return false
 	}
 
 	err = validate.Struct(u)
 	if err != nil {
-		httputil.RespondError(w, http.StatusBadRequest, "Error validate  body request")
+		httputil.RespondError(w, http.StatusBadRequest, "Validation error")
 		return false
 	}
 	return true
@@ -105,7 +105,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user create")
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
 		return
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
