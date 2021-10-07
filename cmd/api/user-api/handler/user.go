@@ -29,26 +29,27 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 		userRepository: userRepository,
 	}
 }
-func readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) {
+func readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) bool {
 	validate = validator.New()
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error read body")
-		return
+		return false
 	}
 	err = json.Unmarshal(b, &u)
 	fmt.Printf("%v\n", u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
-		return
+		return false
 	}
 
 	err = validate.Struct(u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error validate  body request")
-		return
+		return false
 	}
+	return true
 }
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -95,8 +96,10 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	var u dto.UserRequest
-	readBodyRequest(w, r, &u)
-	birthday, _ := time.Parse("020106 150405", u.Birthday)
+	if ok := readBodyRequest(w, r, &u); !ok {
+		return
+	}
+	birthday, _ := time.Parse("2006-01-02", u.Birthday)
 	User := &model.User{
 		Fullname: u.Fullname,
 		Username: u.Username,
