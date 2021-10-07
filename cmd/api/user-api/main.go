@@ -1,19 +1,28 @@
 package main
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"flag"
+	"fmt"
 	"ktrain/cmd/api/user-api/handler"
+
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
+
+var (
+	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
 )
 
 func main() {
-	err := config.BindDefault("user-api")
+	flag.Parse()
+	err := config.BindDefault(*configPath)
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
@@ -42,7 +51,10 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+		r.Put("/update", userHandler.UpdateUser)
+		r.Delete("/delete/{id}", userHandler.DeleteUser)
 	})
-
+	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)
+
 }

@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"errors"
+	"fmt"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/httputil"
 	"net/http"
@@ -34,14 +35,14 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 	}
 }
 
-
 func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	token := strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1)
 	if token == "" {
 		return 0, errors.New("empty token")
 	}
-
+	fmt.Println(token)
 	result, err := m.userRepository.GetAuthToken(token)
+
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}

@@ -2,22 +2,22 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"os"
+
+	"github.com/spf13/viper"
 )
 
-func BindDefault(serviceName string) error {
-	filePath := fmt.Sprintf("cmd/api/%s/config.yaml", serviceName)
-	info, err := os.Stat(filePath)
+func BindDefault(configPath string) error {
+	info, err := os.Stat(configPath)
 	if err != nil {
 		return err
 	}
 
 	if info.IsDir() {
-		return fmt.Errorf("%v is not a file", filePath)
+		return fmt.Errorf("%v is not a file", configPath)
 	}
 
-	viper.SetConfigFile(filePath)
+	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
 
 	return viper.MergeInConfig()
