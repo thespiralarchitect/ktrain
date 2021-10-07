@@ -26,7 +26,7 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 		userRepository: userRepository,
 	}
 }
-func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) bool {
+func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
 	var validate *validator.Validate
 	validate = validator.New()
 	b, err := ioutil.ReadAll(r.Body)
@@ -92,7 +92,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
-	var u dto.UserRequest
+	var u dto.CreateUserRequest
 	if ok := h.readBodyRequest(w, r, &u); !ok {
 		return
 	}

@@ -12,7 +12,7 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updated"`
 }
 
-type UserRequest struct {
+type CreateUserRequest struct {
 	Fullname string `json:"fullname" validate:"required"`
 	Username string `json:"username" validate:"required"`
 	Gender   string `json:"gender" validate:"required"`
