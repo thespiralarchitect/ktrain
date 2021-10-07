@@ -13,8 +13,8 @@ type UserResponse struct {
 }
 
 type UserRequest struct {
-	Fullname string    `json:"fullname" validate:"required"`
-	Username string    `json:"username" validate:"required"`
-	Gender   string    `json:"gender" validate:"required"`
+	Fullname string `json:"fullname" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
 }
