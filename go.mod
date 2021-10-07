@@ -3,7 +3,6 @@ module ktrain
 go 1.17
 
 require (
-	github.com/go-chi/chi v1.5.4
 	github.com/go-chi/chi/v5 v5.0.1
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/spf13/viper v1.9.0

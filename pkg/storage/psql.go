@@ -15,7 +15,7 @@ type PSQLManager struct {
 func NewPSQLManager() (*PSQLManager, error) {
 	db, err := gorm.Open(postgres.Open(
 		fmt.Sprintf(
-			"host=%s user=%v password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
+			"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
 			viper.GetString("postgres.host"),
 			viper.GetString("postgres.username"),
 			viper.GetString("postgres.password"),

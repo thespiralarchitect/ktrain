@@ -21,6 +21,7 @@ var (
 )
 
 func main() {
+	// parse command-line flags
 	flag.Parse()
 	err := config.BindDefault(*configPath)
 	if err != nil {
@@ -51,8 +52,8 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
-		r.Put("/update", userHandler.UpdateUser)
-		r.Delete("/delete/{id}", userHandler.DeleteUser)
+		r.Put("/users", userHandler.UpdateUser)
+		r.Delete("/users/{id}", userHandler.DeleteUser)
 	})
 	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)
