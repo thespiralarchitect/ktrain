@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
@@ -11,8 +9,10 @@ import (
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
-)
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
 
 var (
 	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
@@ -51,7 +51,9 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+		r.Get("/users", userHandler.GetListUsers)
+		r.Get("/users/{id}", userHandler.GetInformationUser)
+		r.Post("/users", userHandler.PostNewUser)
 	})
-
 	http.ListenAndServe(":8080", r)
 }
