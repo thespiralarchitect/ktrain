@@ -20,8 +20,15 @@ var (
 	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
 )
 
+
+var (
+	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
+)
+
 func main() {
+	// parse command-line flags
 	flag.Parse()
+
 	err := config.BindDefault(*configPath)
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
