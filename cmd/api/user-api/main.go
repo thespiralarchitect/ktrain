@@ -52,7 +52,7 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
-		r.Put("/users", userHandler.UpdateUser)
+		r.Put("/users/{id}", userHandler.UpdateUser)
 		r.Delete("/users/{id}", userHandler.DeleteUser)
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)

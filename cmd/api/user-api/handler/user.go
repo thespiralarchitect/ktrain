@@ -27,6 +27,7 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	var validate *validator.Validate
 	validate = validator.New()
 	req := dto.UserResquest{}
@@ -36,7 +37,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
-	_, err = h.userRepository.GetUserByID(req.Id)
+	_, err = h.userRepository.GetUserByID(int64(ID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
