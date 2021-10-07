@@ -76,7 +76,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	id := chi.URLParam(r, "id")
 	userID, err := strconv.Atoi(id)
 	if err != nil {
-		httputil.RespondError(w, http.StatusForbidden, "Error happend with user id ")
+		httputil.RespondError(w, http.StatusBadRequest, "Request invalid")
 		return
 	}
 	user, err := h.userRepository.GetUserByID(int64(userID))
