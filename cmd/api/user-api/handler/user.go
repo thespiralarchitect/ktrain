@@ -2,19 +2,21 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-playground/validator"
 	"io/ioutil"
+	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/model"
 	"ktrain/cmd/repository"
-	"ktrain/pkg/httpreq"
+	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
 	"net/http"
 	"strconv"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-playground/validator"
 )
-var validate	*validator.Validate
+
+var validate *validator.Validate
+
 type userHandler struct {
 	userRepository repository.IUserRepository
 }
@@ -24,29 +26,33 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 		userRepository: userRepository,
 	}
 }
-func readBodyRequest (w http.ResponseWriter,r *http.Request, u *httpreq.UserRequest )  {
+func readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) {
 	validate = validator.New()
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
-    if err != nil {
-        httputil.RespondError(w, http.StatusInternalServerError, "Error read body")
-        return
-    }
-	err2 := json.Unmarshal(b,&u)
-	if err2 != nil {
-        httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
-        return
-    }
-	err3 := validate.Struct(&u)
-	if err3 != nil {
-        httputil.RespondError(w, http.StatusForbidden, "Error validate  body request")
-        return
-    }
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error read body")
+		return
+	}
+	err = json.Unmarshal(b, &u)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal ")
+		return
+	}
+	err = validate.Struct(&u)
+	if err != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Error validate  body request")
+		return
+	}
 }
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
+		if errors.IsDataNotFound(err) {
+			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
+			return
+		}
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
@@ -72,25 +78,24 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	}
 	user, err := h.userRepository.GetUserByID(int64(userID))
 	if err != nil {
-		if  err.Error() == "record not found"{
-			httputil.RespondError(w, http.StatusNotFound, "user id not exist")
-			return
-		}else{
-			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user information")
+		if errors.IsDataNotFound(err) {
+			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
 			return
 		}
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
+		return
 	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToInformationUserResponse(user))
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
 
-func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request){
-	var u httpreq.UserRequest
-	readBodyRequest(w,r,&u)
+func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
+	var u dto.UserRequest
+	readBodyRequest(w, r, &u)
 	User := &model.User{
-		Fullname:   u.Fullname,
-		Username:   u.Username,
-		Gender:     u.Gender,
-		Birthday:   u.Birthday,
+		Fullname: u.Fullname,
+		Username: u.Username,
+		Gender:   u.Gender,
+		Birthday: u.Birthday,
 	}
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {

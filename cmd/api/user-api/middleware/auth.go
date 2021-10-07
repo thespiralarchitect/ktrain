@@ -34,7 +34,6 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 	}
 }
 
-
 func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	token := strings.Replace(r.Header.Get("Authorization"), "Bearer ", "", 1)
 	if token == "" {

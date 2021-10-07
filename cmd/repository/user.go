@@ -41,7 +41,7 @@ func (r *userRepository) GetAuthToken(token string) (*model.AuthToken, error) {
 
 func (r *userRepository) GetListUser() ([]*model.User, error) {
 	users := []*model.User{}
-	if err := r.db.Where("id > ?", "0").Find(&users).Error; err != nil {
+	if err := r.db.Where("id > ?", 0).Find(&users).Error; err != nil {
 		return nil, err
 	}
 	return users, nil
