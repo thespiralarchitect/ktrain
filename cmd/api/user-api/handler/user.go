@@ -18,8 +18,6 @@ import (
 	"github.com/go-playground/validator"
 )
 
-var validate *validator.Validate
-
 type userHandler struct {
 	userRepository repository.IUserRepository
 }
@@ -29,7 +27,8 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 		userRepository: userRepository,
 	}
 }
-func readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) bool {
+func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.UserRequest) bool {
+	var validate *validator.Validate
 	validate = validator.New()
 	b, err := ioutil.ReadAll(r.Body)
 	defer r.Body.Close()
@@ -96,7 +95,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	var u dto.UserRequest
-	if ok := readBodyRequest(w, r, &u); !ok {
+	if ok := h.readBodyRequest(w, r, &u); !ok {
 		return
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)

@@ -55,5 +55,5 @@ func main() {
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Post("/users", userHandler.PostNewUser)
 	})
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":3333", r)
 }
