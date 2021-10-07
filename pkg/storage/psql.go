@@ -24,7 +24,6 @@ func NewPSQLManager() (*PSQLManager, error) {
 			viper.GetString("postgres.ssl_mode"),
 			viper.GetString("postgres.timezone"),
 		)))
-
 	if err != nil {
 		return nil, err
 	}

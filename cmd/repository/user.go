@@ -3,6 +3,7 @@ package repository
 import (
 	"ktrain/cmd/model"
 	"ktrain/pkg/storage"
+	"ktrain/pkg/tokens"
 )
 
 type IUserRepository interface {
@@ -10,6 +11,8 @@ type IUserRepository interface {
 	GetAuthToken(token string) (*model.AuthToken, error)
 	UpdateUser(user *model.User) (*model.User, error)
 	DeleteUser(id int64) error
+	GetListUser() ([]*model.User, error)
+	CreateUser(newUser *model.User) (*model.User, error)
 }
 
 type userRepository struct {
@@ -52,4 +55,25 @@ func (r *userRepository) DeleteUser(id int64) error {
 		return err
 	}
 	return r.db.Unscoped().Delete(&user).Error
+}
+
+func (r *userRepository) GetListUser() ([]*model.User, error) {
+	users := []*model.User{}
+	if err := r.db.Where("id > ?", 0).Find(&users).Error; err != nil {
+		return nil, err
+	}
+	return users, nil
+}
+func (r *userRepository) CreateUser(newUser *model.User) (*model.User, error) {
+	if err := r.db.Create(newUser).Error; err != nil {
+		return nil, err
+	}
+	auth := &model.AuthToken{
+		UserID: newUser.ID,
+		Token:  tokens.CreateToken(newUser.ID, newUser.Username, newUser.Birthday, newUser.CreatedAt),
+	}
+	if err := r.db.Create(auth).Error; err != nil {
+		return nil, err
+	}
+	return newUser, nil
 }

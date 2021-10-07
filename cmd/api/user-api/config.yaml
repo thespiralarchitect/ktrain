@@ -2,8 +2,8 @@ postgres:
   host: localhost
   port: 5432
   username: postgres
-  password: 1234
-  database: Hieu
+  password: changeme
+  database: samples
   ssl_mode: disable
   timezone: Asia/Ho_Chi_Minh
   
