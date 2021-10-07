@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
 
-	//middleware2 "ktrain/cmd/api/user-api/middleware"
+	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
 	"ktrain/pkg/storage"
@@ -47,7 +47,7 @@ func main() {
 		userRepository := repository.NewUserRepository(psqlDB)
 
 		//Authenticate
-		//r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
+		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
 
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
