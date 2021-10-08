@@ -20,7 +20,6 @@ func ToUserResponse(user *model.User) *dto.UserResponse {
 func ToUserModel(user *dto.UserResquest) *model.User {
 	birthday, _ := time.Parse("02/01/2006", user.Birthday)
 	pReq := &model.User{
-		ID:         user.Id,
 		Fullname:   user.Fullname,
 		Username:   user.Username,
 		Gender:     user.Gender,
