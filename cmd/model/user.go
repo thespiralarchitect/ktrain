@@ -5,6 +5,7 @@ import (
 )
 
 type User struct {
+	IsAdmin    bool
 	ID         int64       `gorm:"type:integer"`
 	Fullname   string      `gorm:"type:character varying(255)"`
 	Username   string      `gorm:"type:character varying(255)"`

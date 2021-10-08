@@ -27,7 +27,6 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
-
 			ctx := context.WithValue(r.Context(), "userID", userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
@@ -40,10 +39,33 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 		return 0, errors.New("empty token")
 	}
 	result, err := m.userRepository.GetAuthToken(token)
-
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}
-
 	return result.UserID, nil
+}
+
+func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := m.verifyAdmin(r)
+			if err != nil {
+				httputil.RespondError(w, http.StatusForbidden, err.Error())
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
+	ctx := r.Context()
+	result, err := m.userRepository.GetUserByID(ctx.Value("userID").(int64))
+	if err != nil {
+		return err
+	}
+	if result.IsAdmin == false {
+		return errors.New("Permission denied")
+	}
+	return nil
 }
