@@ -47,6 +47,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := mapper.ToUserModel(&req)
+	user.ID = int64(ID)
 	resp, err := h.userRepository.UpdateUser(user)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
@@ -133,7 +134,6 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
 	User := &model.User{
-		Admin:    u.Admin,
 		Fullname: u.Fullname,
 		Username: u.Username,
 		Gender:   u.Gender,

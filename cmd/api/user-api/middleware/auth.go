@@ -48,7 +48,7 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			err := m.verifyAdmmin(r)
+			err := m.verifyAdmin(r)
 			if err != nil {
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
@@ -58,13 +58,13 @@ func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 	}
 }
 
-func (m *dbTokenAuth) verifyAdmmin(r *http.Request) error {
+func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 	ctx := r.Context()
 	result, err := m.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
 		return err
 	}
-	if result.Admin == false {
+	if result.IsAdmin == false {
 		return errors.New("User not admin")
 	}
 	return nil

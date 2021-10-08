@@ -13,7 +13,6 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	Admin    bool   `json:"admin"`
 	Fullname string `json:"fullname" validate:"required"`
 	Username string `json:"username" validate:"required"`
 	Gender   string `json:"gender" validate:"required"`
@@ -22,7 +21,6 @@ type CreateUserRequest struct {
 
 type UserResquest struct {
 	Id       int64  `json:"id"`
-	Admin    bool   `json:"admin"`
 	Fullname string `json:"fullname" validate:"required"`
 	Username string `json:"username" validate:"required"`
 	Gender   string `json:"gender" validate:"required"`
