@@ -133,6 +133,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
 	User := &model.User{
+		Admin:    u.Admin,
 		Fullname: u.Fullname,
 		Username: u.Username,
 		Gender:   u.Gender,
