@@ -65,7 +65,7 @@ func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 		return err
 	}
 	if result.IsAdmin == false {
-		return errors.New("User not admin")
+		return errors.New("Permission denied")
 	}
 	return nil
 }
