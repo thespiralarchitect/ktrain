@@ -7,3 +7,5 @@ postgres:
   ssl_mode: disable
   timezone: Asia/Ho_Chi_Minh
   
+mongodb:
+  uri: //localhost:27017/

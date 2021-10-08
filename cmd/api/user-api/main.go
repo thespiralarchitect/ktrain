@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
+	"time"
 
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
@@ -28,6 +30,13 @@ func main() {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	mongDB, err := storage.NewMongoDBManager(ctx)
+	if err != nil {
+		log.Fatalf("Error when connecting database, err: %v", err)
+		return
+	}
 
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
@@ -40,15 +49,19 @@ func main() {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("welcome"))
 	})
-
+	mongoRepository := repository.NewMongoRepository(mongDB)
+	monngoHandler := handler.NewMongoHandler(mongoRepository)
+	r.Post("/create", monngoHandler.CreateUser)
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
 		userRepository := repository.NewUserRepository(psqlDB)
+
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Route("/v1", func(r chi.Router) {

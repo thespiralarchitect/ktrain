@@ -24,6 +24,9 @@ func NewPSQLManager() (*PSQLManager, error) {
 			viper.GetString("postgres.ssl_mode"),
 			viper.GetString("postgres.timezone"),
 		)))
+	// fmt.Printf("host=%s ",
+	// 	viper.GetString("mongodb.uri"))
+	// fmt.Println(viper.GetString("mongodb.uri"))
 	if err != nil {
 		return nil, err
 	}
