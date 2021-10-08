@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,6 +27,5 @@ func NewPSQLManager() (*PSQLManager, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return &PSQLManager{db.Debug()}, nil
 }

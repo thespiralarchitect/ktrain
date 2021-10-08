@@ -18,3 +18,11 @@ type CreateUserRequest struct {
 	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
 }
+
+type UserResquest struct {
+	Id       int64  `json:"id"`
+	Fullname string `json:"fullname" validate:"required"`
+	Username string `json:"username" validate:"required"`
+	Gender   string `json:"gender" validate:"required"`
+	Birthday string `json:"birthday" validate:"required"`
+}

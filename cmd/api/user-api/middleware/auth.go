@@ -39,8 +39,8 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	if token == "" {
 		return 0, errors.New("empty token")
 	}
-
 	result, err := m.userRepository.GetAuthToken(token)
+
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}

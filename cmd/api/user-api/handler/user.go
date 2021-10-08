@@ -26,6 +26,42 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 		userRepository: userRepository,
 	}
 }
+func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	var validate *validator.Validate
+	validate = validator.New()
+	req := dto.UserResquest{}
+	json.NewDecoder(r.Body).Decode(&req)
+	err := validate.Struct(req)
+	if err != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
+		return
+	}
+	_, err = h.userRepository.GetUserByID(int64(ID))
+	if err != nil {
+		if errors.IsDataNotFound(err) {
+			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
+			return
+		}
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
+		return
+	}
+	user := mapper.ToUserModel(&req)
+	resp, err := h.userRepository.UpdateUser(user)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
+		return
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(resp))
+}
+func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	err := h.userRepository.DeleteUser(int64(ID))
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when delete user")
+		return
+	}
+}
 func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
 	var validate *validator.Validate
 	validate = validator.New()
@@ -59,7 +95,6 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
-
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
 

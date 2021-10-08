@@ -6,3 +6,4 @@ postgres:
   database: samples
   ssl_mode: disable
   timezone: Asia/Ho_Chi_Minh
+  

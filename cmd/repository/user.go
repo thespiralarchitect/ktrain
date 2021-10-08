@@ -9,6 +9,8 @@ import (
 type IUserRepository interface {
 	GetUserByID(id int64) (*model.User, error)
 	GetAuthToken(token string) (*model.AuthToken, error)
+	UpdateUser(user *model.User) (*model.User, error)
+	DeleteUser(id int64) error
 	GetListUser() ([]*model.User, error)
 	CreateUser(newUser *model.User) (*model.User, error)
 }
@@ -32,11 +34,27 @@ func (r *userRepository) GetUserByID(id int64) (*model.User, error) {
 }
 
 func (r *userRepository) GetAuthToken(token string) (*model.AuthToken, error) {
-	res := &model.AuthToken{}
-	if err := r.db.Where(&model.AuthToken{Token: token}).First(res).Error; err != nil {
+	res := model.AuthToken{}
+	if err := r.db.Where(&model.AuthToken{Token: token}).First(&res).Error; err != nil {
 		return nil, err
 	}
-	return res, nil
+	return &res, nil
+}
+func (r *userRepository) UpdateUser(user *model.User) (*model.User, error) {
+	if err := r.db.Where(&model.User{ID: user.ID}).Updates(&model.User{Fullname: user.Fullname,
+		Birthday: user.Birthday,
+		Gender:   user.Gender}).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *userRepository) DeleteUser(id int64) error {
+	user, err := r.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+	return r.db.Unscoped().Delete(&user).Error
 }
 
 func (r *userRepository) GetListUser() ([]*model.User, error) {

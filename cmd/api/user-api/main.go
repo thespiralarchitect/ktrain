@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"ktrain/cmd/api/user-api/handler"
+
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
@@ -21,7 +23,6 @@ var (
 func main() {
 	// parse command-line flags
 	flag.Parse()
-
 	err := config.BindDefault(*configPath)
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
@@ -51,9 +52,13 @@ func main() {
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
+		r.Put("/users/{id}", userHandler.UpdateUser)
+		r.Delete("/users/{id}", userHandler.DeleteUser)
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Post("/users", userHandler.PostNewUser)
 	})
+	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)
+
 }
