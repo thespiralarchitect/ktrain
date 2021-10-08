@@ -1,8 +1,6 @@
 package handler
 
 import (
-	// "encoding/json"
-	// "io/ioutil"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/model"
@@ -15,7 +13,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
-	// "ktrain/pkg/binding"
 )
 
 type userHandler struct {
