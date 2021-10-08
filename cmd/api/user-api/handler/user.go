@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"encoding/json"
-	"io/ioutil"
+	// "encoding/json"
+	// "io/ioutil"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/model"
@@ -15,7 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
-	"ktrain/pkg/binding"
+	// "ktrain/pkg/binding"
 )
 
 type userHandler struct {
@@ -29,18 +29,24 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	// var validate *validator.Validate
-	// validate = validator.New()
 	req := dto.UserResquest{}
-	// json.NewDecoder(r.Body).Decode(&req)
-	// err := validate.Struct(req)
-	var ctx binding.Context
-	ctx.R = r
-	if err := ctx.ShouldBind(&req); err != nil {
+	var ctx httputil.JsonBinding
+	if err := ctx.BindJSONRequest(&req, r); err != nil {
+		if err.Error() == "error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
+			return
+		} else {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+		}
+		return
+	}
+	validate := validator.New()
+	err := validate.Struct(req)
+	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
-	_, err := h.userRepository.GetUserByID(int64(ID))
+	_, err = h.userRepository.GetUserByID(int64(ID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
@@ -66,28 +72,29 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
-	var validate *validator.Validate
-	validate = validator.New()
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
-		return false
-	}
-	err = json.Unmarshal(b, &u)
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
-		return false
-	}
 
-	err = validate.Struct(u)
-	if err != nil {
-		httputil.RespondError(w, http.StatusBadRequest, "Validation error")
-		return false
-	}
-	return true
-}
+// func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
+// 	var validate *validator.Validate
+// 	validate = validator.New()
+// 	b, err := ioutil.ReadAll(r.Body)
+// 	defer r.Body.Close()
+// 	if err != nil {
+// 		httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
+// 		return false
+// 	}
+// 	err = json.Unmarshal(b, &u)
+// 	if err != nil {
+// 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+// 		return false
+// 	}
+
+// 	err = validate.Struct(u)
+// 	if err != nil {
+// 		httputil.RespondError(w, http.StatusBadRequest, "Validation error")
+// 		return false
+// 	}
+// 	return true
+// }
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
@@ -152,9 +159,19 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	u := dto.CreateUserRequest{}
-	var req binding.Context
-	req.R = r
-	if err := req.ShouldBind(&u); err != nil {
+	var ctx httputil.JsonBinding
+	if err := ctx.BindJSONRequest(&u, r); err != nil {
+		if err.Error() == "Error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
+			return
+		} else {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+		}
+		return
+	}
+	validate := validator.New()
+	err := validate.Struct(u)
+	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
