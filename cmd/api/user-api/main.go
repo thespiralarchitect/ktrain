@@ -57,6 +57,7 @@ func main() {
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Post("/users", userHandler.PostNewUser)
+
 	})
 	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)

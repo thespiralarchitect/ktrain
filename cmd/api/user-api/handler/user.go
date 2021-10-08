@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
+	"ktrain/pkg/binding"
 )
 
 type userHandler struct {
@@ -28,16 +29,18 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	var validate *validator.Validate
-	validate = validator.New()
+	// var validate *validator.Validate
+	// validate = validator.New()
 	req := dto.UserResquest{}
-	json.NewDecoder(r.Body).Decode(&req)
-	err := validate.Struct(req)
-	if err != nil {
+	// json.NewDecoder(r.Body).Decode(&req)
+	// err := validate.Struct(req)
+	var ctx binding.Context
+	ctx.R = r
+	if err := ctx.ShouldBind(&req); err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
-	_, err = h.userRepository.GetUserByID(int64(ID))
+	_, err := h.userRepository.GetUserByID(int64(ID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
@@ -54,6 +57,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(resp))
 }
+
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	err := h.userRepository.DeleteUser(int64(ID))
@@ -126,9 +130,32 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
 
+// func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
+// 	var u dto.CreateUserRequest
+// 	if ok := h.readBodyRequest(w, r, &u); !ok {
+// 		return
+// 	}
+// 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
+// 	User := &model.User{
+// 		Fullname: u.Fullname,
+// 		Username: u.Username,
+// 		Gender:   u.Gender,
+// 		Birthday: birthday,
+// 	}
+// 	newUser, err := h.userRepository.CreateUser(User)
+// 	if err != nil {
+// 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
+// 		return
+// 	}
+// 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
+// }
+
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
-	var u dto.CreateUserRequest
-	if ok := h.readBodyRequest(w, r, &u); !ok {
+	u := dto.CreateUserRequest{}
+	var req binding.Context
+	req.R = r
+	if err := req.ShouldBind(&u); err != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
