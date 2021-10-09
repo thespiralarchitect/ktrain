@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"fmt"
-	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/httputil"
@@ -18,19 +16,12 @@ func NewMongoHandler(mongoRepository repository.MongoRepository) *mongoHandler {
 		mongoRepository: mongoRepository,
 	}
 }
-func (h *mongoHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	user := dto.UserResquest{
-		Fullname: "Hieu",
-		Username: "",
-		Gender:   "",
-		Birthday: "",
-	}
-	fmt.Println("ok1")
-	resp, err := h.mongoRepository.CreateUser(&user)
+func (h *mongoHandler) GetAction(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	action, err := h.mongoRepository.GetAllLogAction(r.Context(), ctx.Value("userID").(int64))
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when create user")
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting list action")
 		return
 	}
-	user1 := mapper.ToUserModel(resp)
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user1))
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToActionResponse(action))
 }

@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/pkg/storage"
 	"log"
@@ -11,12 +10,12 @@ import (
 )
 
 type MongoRepository interface {
-	CreateUser(user *dto.UserResquest) (*dto.UserResquest, error)
+	CreateAction(ctx context.Context, id int64, action string) (string, error)
+	GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionResquest, error)
 }
 
 type mongoRepository struct {
 	collection *storage.MongoDBManager
-	ctx        context.Context
 }
 
 func NewMongoRepository(db *storage.MongoDBManager) MongoRepository {
@@ -24,20 +23,30 @@ func NewMongoRepository(db *storage.MongoDBManager) MongoRepository {
 		collection: db,
 	}
 }
-func (m *mongoRepository) CreateUser(user *dto.UserResquest) (*dto.UserResquest, error) {
-	fmt.Println("ok2")
-	quickstartDatabase := m.collection.Database("quickstart")
-	podcastsCollection := quickstartDatabase.Collection("podcasts")
-	_, err := podcastsCollection.InsertOne(m.ctx, user)
+func (m *mongoRepository) CreateAction(ctx context.Context, id int64, activity_log string) (string, error) {
+	actionDatabase := m.collection.Database("Action")
+	actionCollection := actionDatabase.Collection("activity_logs")
+	action := dto.ActionResquest{
+		ID:     id,
+		Action: activity_log,
+	}
+	_, err := actionCollection.InsertOne(ctx, action)
 	if err != nil {
 		log.Print("error occurred while inserting document in database :: ", err)
+		return "", err
+	}
+	return "Inserting document successfully", nil
+}
+func (m *mongoRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionResquest, error) {
+	actionDatabase := m.collection.Database("Action")
+	actionCollection := actionDatabase.Collection("activity_logs")
+	action, err := actionCollection.Find(ctx, bson.M{"user_id": id})
+	if err != nil {
 		return nil, err
 	}
-	var podcast bson.M
-	if err = podcastsCollection.FindOne(m.ctx, bson.M{"fullname": "Hieu"}).Decode(&podcast); err != nil {
-		log.Print("Object already exists in db:: ", err)
+	var allAction []*dto.ActionResquest
+	if err = action.All(ctx, &allAction); err != nil {
 		return nil, err
 	}
-	fmt.Println(podcast)
-	return user, nil
+	return allAction, nil
 }

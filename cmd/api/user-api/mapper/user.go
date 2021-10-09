@@ -46,3 +46,12 @@ func ToListUsersResponse(users []*model.User) []*dto.UserResponse {
 	}
 	return listUsersResponse
 }
+func ToActionResponse(actions []*dto.ActionResquest) *dto.ActionResponse {
+	listAction := dto.ActionResponse{
+		Action: make([]string, 0),
+	}
+	for _, action := range actions {
+		listAction.Action = append(listAction.Action, action.Action)
+	}
+	return &listAction
+}

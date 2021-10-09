@@ -25,3 +25,10 @@ type UserResquest struct {
 	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
 }
+type ActionResquest struct {
+	ID     int64
+	Action string
+}
+type ActionResponse struct {
+	Action []string `json:"action"`
+}
