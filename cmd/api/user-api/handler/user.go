@@ -147,7 +147,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) GetInformationQueryID(w http.ResponseWriter, r *http.Request) {
 	queryID := dto.UserQuery{}
 	var ctx httputil.ParamURLBinding
-	if err := ctx.BindURLParamRequest(&queryID, r); err != nil {
+	if err := ctx.BindURLQueryRequest(&queryID, r); err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal query request")
 		return
 	}

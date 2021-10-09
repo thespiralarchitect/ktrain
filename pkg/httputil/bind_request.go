@@ -20,7 +20,7 @@ type HTTPBinder interface {
 	BindJSONRequest(i interface{}, req *http.Request) error
 }
 type URLBinder interface {
-	BindURLParamRequest(i interface{}, req *http.Request) error
+	BindURLQueryRequest(i interface{}, req *http.Request) error
 }
 
 func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
@@ -35,7 +35,7 @@ func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
 	}
 	return nil
 }
-func (ParamURLBinding) BindURLParamRequest(obj interface{}, req *http.Request) error {
+func (ParamURLBinding) BindURLQueryRequest(obj interface{}, req *http.Request) error {
 	values := req.URL.Query()
 	if err := mapstructure.Decode(values, obj); err != nil {
 		return err
