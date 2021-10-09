@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 // type Context struct {
@@ -12,19 +14,15 @@ import (
 // 	W http.ResponseWriter
 // }
 type JsonBinding struct{}
+type ParamURLBinding struct{}
 
 type HTTPBinder interface {
 	BindJSONRequest(i interface{}, req *http.Request) error
 }
+type URLBinder interface {
+	BindURLParamRequest(i interface{}, req *http.Request) error
+}
 
-// func decodeJSON(r io.Reader, i interface{}, w http.ResponseWriter) error {
-// 	decoder := json.NewDecoder(r)
-// 	if err := decoder.Decode(i); err != nil {
-// 		RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
-// 		return err
-// 	}
-// 	return nil
-// }
 func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
 	b, err := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
@@ -34,6 +32,13 @@ func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
 	err = json.Unmarshal(b, i)
 	if err != nil {
 		return errors.New("Error unmarshal")
+	}
+	return nil
+}
+func (ParamURLBinding) BindURLParamRequest(obj interface{}, req *http.Request) error {
+	values := req.URL.Query()
+	if err := mapstructure.Decode(values, obj); err != nil {
+		return err
 	}
 	return nil
 }

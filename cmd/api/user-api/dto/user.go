@@ -26,3 +26,7 @@ type UserResquest struct {
 	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
 }
+
+type UserQuery struct {
+	Id []string
+}

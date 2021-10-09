@@ -29,8 +29,8 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	req := dto.UserResquest{}
 	var ctx httputil.JsonBinding
 	if err := ctx.BindJSONRequest(&req, r); err != nil {
-		if err.Error() == "error reading body request" {
-			httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
+		if err.Error() == "Error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
 		} else {
 			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
@@ -70,28 +70,6 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
-// 	var validate *validator.Validate
-// 	validate = validator.New()
-// 	b, err := ioutil.ReadAll(r.Body)
-// 	defer r.Body.Close()
-// 	if err != nil {
-// 		httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
-// 		return false
-// 	}
-// 	err = json.Unmarshal(b, &u)
-// 	if err != nil {
-// 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
-// 		return false
-// 	}
-
-// 	err = validate.Struct(u)
-// 	if err != nil {
-// 		httputil.RespondError(w, http.StatusBadRequest, "Validation error")
-// 		return false
-// 	}
-// 	return true
-// }
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
@@ -134,32 +112,12 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
 
-// func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
-// 	var u dto.CreateUserRequest
-// 	if ok := h.readBodyRequest(w, r, &u); !ok {
-// 		return
-// 	}
-// 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
-// 	User := &model.User{
-// 		Fullname: u.Fullname,
-// 		Username: u.Username,
-// 		Gender:   u.Gender,
-// 		Birthday: birthday,
-// 	}
-// 	newUser, err := h.userRepository.CreateUser(User)
-// 	if err != nil {
-// 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
-// 		return
-// 	}
-// 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
-// }
-
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	u := dto.CreateUserRequest{}
 	var ctx httputil.JsonBinding
 	if err := ctx.BindJSONRequest(&u, r); err != nil {
 		if err.Error() == "Error reading body request" {
-			httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
+			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
 		} else {
 			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
@@ -185,4 +143,23 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
+}
+func (h *userHandler) GetInformationQueryID(w http.ResponseWriter, r *http.Request) {
+	queryID := dto.UserQuery{}
+	var ctx httputil.ParamURLBinding
+	if err := ctx.BindURLParamRequest(&queryID, r); err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal query request")
+		return
+	}
+	id, _ := strconv.Atoi(queryID.Id[0])
+	user, err := h.userRepository.GetUserByID(int64(id))
+	if err != nil {
+		if errors.IsDataNotFound(err) {
+			httputil.RespondError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
+		return
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
