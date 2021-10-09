@@ -43,20 +43,20 @@ func main() {
 
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
-
 		userRepository := repository.NewUserRepository(psqlDB)
-
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
-
 		//API handlers
 		userHandler := handler.NewUserHandler(userRepository)
 		r.Get("/me", userHandler.GetMyProfile)
-		r.Put("/users/{id}", userHandler.UpdateUser)
-		r.Delete("/users/{id}", userHandler.DeleteUser)
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
-		r.Post("/users", userHandler.PostNewUser)
+		r.Route("/v1", func(r chi.Router) {
+			r.Use(middleware2.NewDBTokenAuth(userRepository).HandleAdmin())
+			r.Post("/users", userHandler.PostNewUser)
+			r.Put("/users/{id}", userHandler.UpdateUser)
+			r.Delete("/users/{id}", userHandler.DeleteUser)
+		})
 		r.Get("/user", userHandler.GetInformationQueryID)
 	})
 	fmt.Println("Listen at port: 8080")

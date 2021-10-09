@@ -25,7 +25,9 @@ func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	var validate *validator.Validate
+	validate = validator.New()
 	req := dto.UserResquest{}
 	var ctx httputil.JsonBinding
 	if err := ctx.BindJSONRequest(&req, r); err != nil {
@@ -37,13 +39,12 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	validate := validator.New()
 	err := validate.Struct(req)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
-	_, err = h.userRepository.GetUserByID(int64(ID))
+	_, err = h.userRepository.GetUserByID(int64(id))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
@@ -53,6 +54,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := mapper.ToUserModel(&req)
+	user.ID = int64(id)
 	resp, err := h.userRepository.UpdateUser(user)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
