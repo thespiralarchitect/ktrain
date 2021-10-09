@@ -14,7 +14,7 @@ import (
 // 	W http.ResponseWriter
 // }
 type JsonBinding struct{}
-type ParamURLBinding struct{}
+type QueryURLBinding struct{}
 
 type HTTPBinder interface {
 	BindJSONRequest(i interface{}, req *http.Request) error
@@ -35,7 +35,7 @@ func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
 	}
 	return nil
 }
-func (ParamURLBinding) BindURLQueryRequest(obj interface{}, req *http.Request) error {
+func (QueryURLBinding) BindURLQueryRequest(obj interface{}, req *http.Request) error {
 	values := req.URL.Query()
 	if err := mapstructure.Decode(values, obj); err != nil {
 		return err
