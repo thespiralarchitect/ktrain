@@ -165,3 +165,5 @@ func (h *userHandler) GetInformationQueryID(w http.ResponseWriter, r *http.Reque
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
+
+
