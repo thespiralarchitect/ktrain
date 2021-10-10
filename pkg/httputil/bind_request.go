@@ -13,17 +13,14 @@ import (
 // 	R *http.Request
 // 	W http.ResponseWriter
 // }
-type JsonBinding struct{}
-type QueryURLBinding struct{}
+type JsonBinder struct{}
+type QueryURLBinder struct{}
 
 type HTTPBinder interface {
-	BindJSONRequest(i interface{}, req *http.Request) error
-}
-type URLBinder interface {
-	BindURLQueryRequest(i interface{}, req *http.Request) error
+	BindRequest(i interface{}, req *http.Request) error
 }
 
-func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
+func (JsonBinder) BindRequest(i interface{}, req *http.Request) error {
 	b, err := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
 	if err != nil {
@@ -35,7 +32,7 @@ func (JsonBinding) BindJSONRequest(i interface{}, req *http.Request) error {
 	}
 	return nil
 }
-func (QueryURLBinding) BindURLQueryRequest(obj interface{}, req *http.Request) error {
+func (QueryURLBinder) BindRequest(obj interface{}, req *http.Request) error {
 	values := req.URL.Query()
 	if err := mapstructure.Decode(values, obj); err != nil {
 		return err

@@ -29,8 +29,8 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var validate *validator.Validate
 	validate = validator.New()
 	req := dto.UserResquest{}
-	var ctx httputil.JsonBinding
-	if err := ctx.BindJSONRequest(&req, r); err != nil {
+	var binder httputil.JsonBinder
+	if err := binder.BindRequest(&req, r); err != nil {
 		if err.Error() == "Error reading body request" {
 			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
@@ -116,8 +116,8 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	u := dto.CreateUserRequest{}
-	var ctx httputil.JsonBinding
-	if err := ctx.BindJSONRequest(&u, r); err != nil {
+	var binder httputil.JsonBinder
+	if err := binder.BindRequest(&u, r); err != nil {
 		if err.Error() == "Error reading body request" {
 			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
@@ -148,8 +148,8 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 }
 func (h *userHandler) GetInformationQueryID(w http.ResponseWriter, r *http.Request) {
 	queryID := dto.UserQuery{}
-	var ctx httputil.QueryURLBinding
-	if err := ctx.BindURLQueryRequest(&queryID, r); err != nil {
+	var binder httputil.QueryURLBinder
+	if err := binder.BindRequest(&queryID, r); err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal query request")
 		return
 	}
