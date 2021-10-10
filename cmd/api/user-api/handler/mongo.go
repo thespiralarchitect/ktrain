@@ -7,18 +7,18 @@ import (
 	"net/http"
 )
 
-type mongoHandler struct {
-	mongoRepository repository.MongoRepository
+type activityLogHandler struct {
+	activityLogRepository repository.ActivityLogRepository
 }
 
-func NewMongoHandler(mongoRepository repository.MongoRepository) *mongoHandler {
-	return &mongoHandler{
-		mongoRepository: mongoRepository,
+func NewActivityLogHandler(activityLogRepository repository.ActivityLogRepository) *activityLogHandler {
+	return &activityLogHandler{
+		activityLogRepository: activityLogRepository,
 	}
 }
-func (h *mongoHandler) GetAction(w http.ResponseWriter, r *http.Request) {
+func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	action, err := h.mongoRepository.GetAllLogAction(r.Context(), ctx.Value("userID").(int64))
+	action, err := h.activityLogRepository.GetAllLogAction(r.Context(), ctx.Value("userID").(int64))
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting list action")
 		return

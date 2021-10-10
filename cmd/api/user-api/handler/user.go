@@ -18,14 +18,14 @@ import (
 )
 
 type userHandler struct {
-	userRepository  repository.IUserRepository
-	mongoRepository repository.MongoRepository
+	userRepository        repository.IUserRepository
+	activityLogRepository repository.ActivityLogRepository
 }
 
-func NewUserHandler(userRepository repository.IUserRepository, mongoRepository repository.MongoRepository) *userHandler {
+func NewUserHandler(userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
 	return &userHandler{
-		userRepository:  userRepository,
-		mongoRepository: mongoRepository,
+		userRepository:        userRepository,
+		activityLogRepository: activityLogRepository,
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +40,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	_, err = h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
 		return
@@ -65,7 +65,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action")
 		return
@@ -101,7 +101,7 @@ func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u 
 }
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
 		return
@@ -120,7 +120,7 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return
@@ -141,11 +141,12 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	ctx := r.Context()
-	_, err = h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return
 	}
+
 	user, err := h.userRepository.GetUserByID(int64(userID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
@@ -172,7 +173,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	_, err := h.mongoRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return

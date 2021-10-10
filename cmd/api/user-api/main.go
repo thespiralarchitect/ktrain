@@ -52,7 +52,7 @@ func main() {
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
 		userRepository := repository.NewUserRepository(psqlDB)
-		mongoRepository := repository.NewMongoRepository(mongDB)
+		mongoRepository := repository.NewActivityLogRepository(mongDB)
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
 		//API handlers
@@ -67,8 +67,8 @@ func main() {
 			r.Delete("/users/{id}", userHandler.DeleteUser)
 		})
 		r.Route("/v1", func(r chi.Router) {
-			monngoHandler := handler.NewMongoHandler(mongoRepository)
-			r.Get("/users/{id}/activities", monngoHandler.GetAction)
+			monngoHandler := handler.NewActivityLogHandler(mongoRepository)
+			r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		})
 	})
 	fmt.Println("Listen at port: 8080")
