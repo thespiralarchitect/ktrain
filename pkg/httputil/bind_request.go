@@ -9,10 +9,6 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-// type Context struct {
-// 	R *http.Request
-// 	W http.ResponseWriter
-// }
 type JsonBinder struct{}
 type QueryURLBinder struct{}
 
