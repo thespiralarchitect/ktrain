@@ -88,16 +88,10 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
-
+	var ids []int64
 	if values["ids"] == nil {
-		users, err := h.userRepository.GetListUser(nil)
-		if err != nil {
-			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
-			return
-		}
-		httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
+		ids = nil
 	} else {
-		var ids []int64
 		req := dto.UserQuery{}
 		var binder httputil.QueryURLBinder
 		if err := binder.BindRequest(&req, r); err != nil {
@@ -108,13 +102,13 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 			id, _ := strconv.Atoi(v)
 			ids = append(ids, int64(id))
 		}
-		users, err := h.userRepository.GetListUser(ids)
-		if err != nil {
-			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
-			return
-		}
-		httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
 	}
+	users, err := h.userRepository.GetListUser(ids)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
+		return
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
 }
 
 func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request) {
