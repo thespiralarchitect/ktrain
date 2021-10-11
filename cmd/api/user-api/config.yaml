@@ -10,5 +10,4 @@ postgres:
 mongodb:
   uri: //localhost:27017/
   timeout: 2s
-  collection: activityLog
   database:  activity
