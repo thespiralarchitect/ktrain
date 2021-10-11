@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package user;
+option go_package = "./pb";
+import "google/protobuf/timestamp.proto";
+service UserDMSService {
+    rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+    rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
+    rpc GetAuthToken(GetAuthTokenRequest) returns (GetAuthTokenResponse);
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+    rpc DeleteUser(DeleteUserRequest) returns (Empty);
+    rpc GetListUser(GetListUserRequest) returns (GetListUserResponse);
+}
+message User {
+    bool   is_admin = 1;
+    int64  id = 2;
+    string fullname = 3;
+    string username = 4;
+    string gender = 5;
+    google.protobuf.Timestamp birthday = 6;
+    repeated AuthToken auth_token = 7;
+}
+message AuthToken {
+    int64 id = 1;
+    int64 user_id = 2;
+    string token = 3;
+}
+message CreateUserRequest {
+    User user = 1;
+}
+message CreateUserResponse {
+    User user = 1;
+}
+message GetUserByIDRequest {
+    int64 id = 1;
+}
+message GetUserByIDResponse {
+    User user = 1;
+}
+message GetAuthTokenRequest {
+    string token = 1;
+}
+message GetAuthTokenResponse {
+    AuthToken auth_token = 1;
+}
+message UpdateUserRequest {
+    User user = 1;
+}
+message UpdateUserResponse {
+    User user = 1;
+}
+message DeleteUserRequest {
+    int64 id = 1;
+}
+message Empty {}
+message GetListUserRequest {
+    repeated int64 ids = 1;
+}
+message GetListUserResponse {
+    repeated User users = 1;
+}
