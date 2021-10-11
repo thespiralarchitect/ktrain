@@ -16,19 +16,21 @@ import (
 )
 
 type userHandler struct {
-	userRepository repository.IUserRepository
+	userRepository        repository.IUserRepository
+	activityLogRepository repository.ActivityLogRepository
 }
 
-func NewUserHandler(userRepository repository.IUserRepository) *userHandler {
+func NewUserHandler(userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
 	return &userHandler{
-		userRepository: userRepository,
+		userRepository:        userRepository,
+		activityLogRepository: activityLogRepository,
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	var validate *validator.Validate
 	validate = validator.New()
-	req := dto.UserResquest{}
+	req := dto.UserRequest{}
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&req, r); err != nil {
 		if err.Error() == "Error reading body request" {
@@ -42,6 +44,12 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	err := validate.Struct(req)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
+		return
+	}
+	ctx := r.Context()
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
 		return
 	}
 	_, err = h.userRepository.GetUserByID(int64(id))
@@ -64,8 +72,14 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action")
+		return
+	}
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	err := h.userRepository.DeleteUser(int64(ID))
+	err = h.userRepository.DeleteUser(int64(ID))
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when delete user")
 		return
@@ -74,6 +88,11 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
+		return
+	}
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
@@ -101,6 +120,12 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 			ids = append(ids, int64(id))
 		}
 	}
+	ctx := r.Context()
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
+		return
+	}
 	users, err := h.userRepository.GetListUser(ids)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
@@ -116,6 +141,13 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		httputil.RespondError(w, http.StatusBadRequest, "Request invalid")
 		return
 	}
+	ctx := r.Context()
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
+		return
+	}
+
 	user, err := h.userRepository.GetUserByID(int64(userID))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
@@ -125,6 +157,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
+
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
 }
 
@@ -152,6 +185,12 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Username: u.Username,
 		Gender:   u.Gender,
 		Birthday: birthday,
+	}
+	ctx := r.Context()
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
+		return
 	}
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {

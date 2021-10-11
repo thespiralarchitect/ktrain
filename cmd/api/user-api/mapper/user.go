@@ -17,7 +17,7 @@ func ToUserResponse(user *model.User) *dto.UserResponse {
 		UpdatedAt: user.UpdatedAt,
 	}
 }
-func ToUserModel(user *dto.UserResquest) *model.User {
+func ToUserModel(user *dto.UserRequest) *model.User {
 	birthday, _ := time.Parse("02/01/2006", user.Birthday)
 	pReq := &model.User{
 		Fullname:   user.Fullname,
@@ -45,4 +45,13 @@ func ToListUsersResponse(users []*model.User) []*dto.UserResponse {
 		listUsersResponse = append(listUsersResponse, userResponse)
 	}
 	return listUsersResponse
+}
+func ToActionResponse(actions []*dto.ActionRequest) *dto.ActionResponse {
+	listAction := dto.ActionResponse{
+		Action: make([]string, 0),
+	}
+	for _, action := range actions {
+		listAction.Action = append(listAction.Action, action.Action)
+	}
+	return &listAction
 }
