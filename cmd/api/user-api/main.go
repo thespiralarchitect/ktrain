@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
+	"ktrain/rambbitmq"
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
+	"ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
@@ -45,6 +47,12 @@ func main() {
 		return
 	}
 	defer psqlDB.Close()
+	rabbitMq, err := rambbitmq.ConectRambbitMQ()
+	defer rabbitMq.Close()
+	if err != nil {
+		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
+	}
+	rambbitmqRepository := repository.NewActivityLogRambbitMqRepository(rabbitMq)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +65,7 @@ func main() {
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
 		//API handlers
-		userHandler := handler.NewUserHandler(userRepository, activityLogRepository)
+		userHandler := handler.NewUserHandler(rambbitmqRepository, userRepository, activityLogRepository)
 		monngoHandler := handler.NewActivityLogHandler(activityLogRepository)
 		r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		r.Get("/me", userHandler.GetMyProfile)

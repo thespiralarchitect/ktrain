@@ -2,6 +2,7 @@ package httputil
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -50,4 +51,9 @@ func RespondError(w http.ResponseWriter, httpStatusCode int, message string) {
 		Data:    nil,
 	}
 	respondJSON(w, httpStatusCode, base)
+}
+func FailOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %s", msg, err)
+	}
 }
