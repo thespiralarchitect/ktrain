@@ -1,10 +1,7 @@
 package httputil
 
 import (
-	"context"
 	"encoding/json"
-	"ktrain/pkg/storage"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -53,11 +50,4 @@ func RespondError(w http.ResponseWriter, httpStatusCode int, message string) {
 		Data:    nil,
 	}
 	respondJSON(w, httpStatusCode, base)
-}
-
-func DisconnectDb(mongDB *storage.MongoDBManager, ctx context.Context) {
-	if err := mongDB.Disconnect(ctx); err != nil {
-		log.Fatalf("Error when disconect database, err: %v", err)
-		return
-	}
 }
