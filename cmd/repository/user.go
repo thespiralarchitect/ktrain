@@ -59,7 +59,7 @@ func (r *userRepository) DeleteUser(id int64) error {
 
 func (r *userRepository) GetListUser(ids []int64) ([]*model.User, error) {
 	users := []*model.User{}
-	if ids == nil {
+	if len(ids) == 0 {
 		if err := r.db.Where("id > ?", 0).Find(&users).Error; err != nil {
 			return nil, err
 		}

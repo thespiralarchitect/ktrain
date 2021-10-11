@@ -89,9 +89,7 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
 	var ids []int64
-	if values["ids"] == nil {
-		ids = nil
-	} else {
+	if values["ids"] != nil {
 		req := dto.UserQuery{}
 		var binder httputil.QueryURLBinder
 		if err := binder.BindRequest(&req, r); err != nil {
