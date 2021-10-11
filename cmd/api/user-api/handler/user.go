@@ -88,39 +88,33 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	values := r.URL.Query()
+
 	if values["ids"] == nil {
-		users, err := h.userRepository.GetListUser()
+		users, err := h.userRepository.GetListUser(nil)
+		if err != nil {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
+			return
+		}
+		httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
+	} else {
+		var ids []int64
+		req := dto.UserQuery{}
+		var binder httputil.QueryURLBinder
+		if err := binder.BindRequest(&req, r); err != nil {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error when query users list")
+			return
+		}
+		for _, v := range req.Ids {
+			id, _ := strconv.Atoi(v)
+			ids = append(ids, int64(id))
+		}
+		users, err := h.userRepository.GetListUser(ids)
 		if err != nil {
 			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
 			return
 		}
 		httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
 	}
-	req := dto.UserQuery{}
-	var binder httputil.QueryURLBinder
-	if err := binder.BindRequest(&req, r); err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when query users list")
-		return
-	}
-	var ids []int64
-	for _, v := range req.Ids {
-		id, _ := strconv.Atoi(v)
-		ids = append(ids, int64(id))
-	}
-	users := []*model.User{}
-	for _, v := range ids {
-		user, err := h.userRepository.GetUserByID(v)
-		if err != nil {
-			if errors.IsDataNotFound(err) {
-				httputil.RespondError(w, http.StatusNotFound, "User not found")
-				return
-			}
-			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
-			return
-		}
-		users = append(users, user)
-	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
 }
 
 func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request) {
