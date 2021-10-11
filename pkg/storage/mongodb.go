@@ -13,7 +13,6 @@ import (
 type MongoDBManager struct {
 	*mongo.Client
 	*mongo.Database
-	*mongo.Collection
 }
 
 func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
@@ -26,11 +25,9 @@ func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 		return nil, err
 	}
 	actionDatabase := client.Database(viper.GetString("mongodb.database"))
-	actionCollection := actionDatabase.Collection(viper.GetString("mongodb.collection"))
 	return &MongoDBManager{
-		Client:     client,
-		Database:   actionDatabase,
-		Collection: actionCollection,
+		Client:   client,
+		Database: actionDatabase,
 	}, nil
 }
 func (m *MongoDBManager) Close(ctx context.Context) {

@@ -5,6 +5,7 @@ import (
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/pkg/storage"
 
+	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -27,14 +28,16 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 		ID:     id,
 		Action: activityLog,
 	}
-	_, err := m.collection.InsertOne(ctx, action)
+	actionCollection := m.collection.Database.Collection(viper.GetString("mongodb.collection"))
+	_, err := actionCollection.InsertOne(ctx, action)
 	if err != nil {
 		return "", err
 	}
 	return "Inserting document successfully", nil
 }
 func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error) {
-	action, err := m.collection.Find(ctx, bson.M{"user_id": id})
+	actionCollection := m.collection.Database.Collection(viper.GetString("mongodb.collection"))
+	action, err := actionCollection.Find(ctx, bson.M{"user_id": id})
 	if err != nil {
 		return nil, err
 	}
