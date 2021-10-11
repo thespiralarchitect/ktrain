@@ -87,10 +87,38 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userRepository.GetListUser()
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
+	values := r.URL.Query()
+	if values["ids"] == nil {
+		users, err := h.userRepository.GetListUser()
+		if err != nil {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
+			return
+		}
+		httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
+	}
+	req := dto.UserQuery{}
+	var binder httputil.QueryURLBinder
+	if err := binder.BindRequest(&req, r); err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when query users list")
 		return
+	}
+	var ids []int64
+	for _, v := range req.Ids {
+		id, _ := strconv.Atoi(v)
+		ids = append(ids, int64(id))
+	}
+	users := []*model.User{}
+	for _, v := range ids {
+		user, err := h.userRepository.GetUserByID(v)
+		if err != nil {
+			if errors.IsDataNotFound(err) {
+				httputil.RespondError(w, http.StatusNotFound, "User not found")
+				return
+			}
+			httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
+			return
+		}
+		users = append(users, user)
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
 }
@@ -146,24 +174,3 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
 }
-func (h *userHandler) GetInformationQueryID(w http.ResponseWriter, r *http.Request) {
-	queryID := dto.UserQuery{}
-	var binder httputil.QueryURLBinder
-	if err := binder.BindRequest(&queryID, r); err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal query request")
-		return
-	}
-	id, _ := strconv.Atoi(queryID.Id[0])
-	user, err := h.userRepository.GetUserByID(int64(id))
-	if err != nil {
-		if errors.IsDataNotFound(err) {
-			httputil.RespondError(w, http.StatusNotFound, "User not found")
-			return
-		}
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
-		return
-	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
-}
-
-

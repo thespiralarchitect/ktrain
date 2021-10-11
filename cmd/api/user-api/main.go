@@ -57,7 +57,6 @@ func main() {
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)
 		})
-		r.Get("/user", userHandler.GetInformationQueryID)
 	})
 	fmt.Println("Listen at port: 8080")
 	http.ListenAndServe(":8080", r)

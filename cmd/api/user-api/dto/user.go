@@ -27,5 +27,6 @@ type UserResquest struct {
 }
 
 type UserQuery struct {
-	Id []string
+	Ids []string
 }
+
