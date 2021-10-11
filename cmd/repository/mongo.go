@@ -14,12 +14,12 @@ type ActivityLogRepository interface {
 }
 
 type activityLogRepository struct {
-	collection *storage.MongoDBManager
+	manager *storage.MongoDBManager
 }
 
 func NewActivityLogRepository(db *storage.MongoDBManager) ActivityLogRepository {
 	return &activityLogRepository{
-		collection: db,
+		manager: db,
 	}
 }
 func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, activityLog string) (string, error) {
@@ -27,7 +27,7 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 		ID:     id,
 		Action: activityLog,
 	}
-	actionCollection := m.collection.Database.Collection("activityLog")
+	actionCollection := m.manager.Database.Collection("activityLog")
 	_, err := actionCollection.InsertOne(ctx, action)
 	if err != nil {
 		return "", err
@@ -35,7 +35,7 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 	return "Inserting document successfully", nil
 }
 func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error) {
-	actionCollection := m.collection.Database.Collection("activityLog")
+	actionCollection := m.manager.Database.Collection("activityLog")
 	action, err := actionCollection.Find(ctx, bson.M{"user_id": id})
 	if err != nil {
 		return nil, err

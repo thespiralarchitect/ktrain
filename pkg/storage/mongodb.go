@@ -17,9 +17,16 @@ type MongoDBManager struct {
 
 func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 	clientOptions := options.Client().ApplyURI(fmt.Sprintf(
-		"mongodb:%s ",
+		"mongodb:%s",
 		viper.GetString("mongodb.uri"),
 	))
+	if viper.GetBool("mongodb.hasAuth") {
+		clientOptions.SetAuth(options.Credential{
+			Username: viper.GetString("mongodb.username"),
+			Password: viper.GetString("mongodb.password"),
+		})
+	}
+
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, err
