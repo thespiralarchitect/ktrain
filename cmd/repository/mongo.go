@@ -10,7 +10,7 @@ import (
 
 type ActivityLogRepository interface {
 	CreateAction(ctx context.Context, id int64, action string) (string, error)
-	GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionResquest, error)
+	GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error)
 }
 
 type activityLogRepository struct {
@@ -23,7 +23,7 @@ func NewActivityLogRepository(db *storage.MongoDBManager) ActivityLogRepository 
 	}
 }
 func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, activityLog string) (string, error) {
-	action := dto.ActionResquest{
+	action := dto.ActionRequest{
 		ID:     id,
 		Action: activityLog,
 	}
@@ -33,12 +33,12 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 	}
 	return "Inserting document successfully", nil
 }
-func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionResquest, error) {
+func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error) {
 	action, err := m.collection.Find(ctx, bson.M{"user_id": id})
 	if err != nil {
 		return nil, err
 	}
-	var allAction []*dto.ActionResquest
+	var allAction []*dto.ActionRequest
 	if err = action.All(ctx, &allAction); err != nil {
 		return nil, err
 	}

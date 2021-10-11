@@ -19,13 +19,13 @@ type CreateUserRequest struct {
 	Birthday string `json:"birthday" validate:"required"`
 }
 
-type UserResquest struct {
+type UserRequest struct {
 	Fullname string `json:"fullname" validate:"required"`
 	Username string `json:"username" validate:"required"`
 	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
 }
-type ActionResquest struct {
+type ActionRequest struct {
 	ID     int64
 	Action string
 }

@@ -32,7 +32,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	var validate *validator.Validate
 	validate = validator.New()
-	req := dto.UserResquest{}
+	req := dto.UserRequest{}
 	json.NewDecoder(r.Body).Decode(&req)
 	err := validate.Struct(req)
 	if err != nil {
