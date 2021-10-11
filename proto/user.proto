@@ -2,7 +2,10 @@ syntax = "proto3";
 
 package user;
 option go_package = "./pb";
+
+import "empty.proto";
 import "google/protobuf/timestamp.proto";
+
 service UserDMSService {
     rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
     rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
@@ -52,7 +55,7 @@ message UpdateUserResponse {
 message DeleteUserRequest {
     int64 id = 1;
 }
-message Empty {}
+
 message GetListUserRequest {
     repeated int64 ids = 1;
 }
