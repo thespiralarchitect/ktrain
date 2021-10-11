@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -28,4 +29,11 @@ func NewPSQLManager() (*PSQLManager, error) {
 		return nil, err
 	}
 	return &PSQLManager{db.Debug()}, nil
+}
+func (m *PSQLManager) Close() {
+	sqlDB, _ := m.Debug().DB()
+	err := sqlDB.Close()
+	if err != nil {
+		log.Fatalf("Could not close storage, err: %v", err)
+	}
 }
