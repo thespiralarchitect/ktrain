@@ -1,8 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/model"
@@ -33,7 +31,16 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var validate *validator.Validate
 	validate = validator.New()
 	req := dto.UserRequest{}
-	json.NewDecoder(r.Body).Decode(&req)
+	var binder httputil.JsonBinder
+	if err := binder.BindRequest(&req, r); err != nil {
+		if err.Error() == "Error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
+			return
+		} else {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+		}
+		return
+	}
 	err := validate.Struct(req)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
@@ -63,6 +70,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(resp))
 }
+
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
@@ -77,28 +85,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-func (h *userHandler) readBodyRequest(w http.ResponseWriter, r *http.Request, u *dto.CreateUserRequest) bool {
-	var validate *validator.Validate
-	validate = validator.New()
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error read body request")
-		return false
-	}
-	err = json.Unmarshal(b, &u)
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
-		return false
-	}
 
-	err = validate.Struct(u)
-	if err != nil {
-		httputil.RespondError(w, http.StatusBadRequest, "Validation error")
-		return false
-	}
-	return true
-}
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
@@ -119,13 +106,27 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
+	values := r.URL.Query()
+	var ids []int64
+	if values["ids"] != nil {
+		req := dto.UserQuery{}
+		var binder httputil.QueryURLBinder
+		if err := binder.BindRequest(&req, r); err != nil {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error when query users list")
+			return
+		}
+		for _, v := range req.Ids {
+			id, _ := strconv.Atoi(v)
+			ids = append(ids, int64(id))
+		}
+	}
 	ctx := r.Context()
 	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return
 	}
-	users, err := h.userRepository.GetListUser()
+	users, err := h.userRepository.GetListUser(ids)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
 		return
@@ -161,8 +162,21 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
-	var u dto.CreateUserRequest
-	if ok := h.readBodyRequest(w, r, &u); !ok {
+	u := dto.CreateUserRequest{}
+	var binder httputil.JsonBinder
+	if err := binder.BindRequest(&u, r); err != nil {
+		if err.Error() == "Error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
+			return
+		} else {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+		}
+		return
+	}
+	validate := validator.New()
+	err := validate.Struct(u)
+	if err != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
@@ -173,7 +187,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
+	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return

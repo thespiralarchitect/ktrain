@@ -11,7 +11,7 @@ type IUserRepository interface {
 	GetAuthToken(token string) (*model.AuthToken, error)
 	UpdateUser(user *model.User) (*model.User, error)
 	DeleteUser(id int64) error
-	GetListUser() ([]*model.User, error)
+	GetListUser(ids []int64) ([]*model.User, error)
 	CreateUser(newUser *model.User) (*model.User, error)
 }
 
@@ -57,10 +57,20 @@ func (r *userRepository) DeleteUser(id int64) error {
 	return r.db.Unscoped().Delete(&user).Error
 }
 
-func (r *userRepository) GetListUser() ([]*model.User, error) {
+func (r *userRepository) GetListUser(ids []int64) ([]*model.User, error) {
 	users := []*model.User{}
-	if err := r.db.Where("id > ?", 0).Find(&users).Error; err != nil {
-		return nil, err
+	if len(ids) == 0 {
+		if err := r.db.Where("id > ?", 0).Find(&users).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		for _, id := range ids {
+			user := &model.User{}
+			if err := r.db.Where(&model.User{ID: id}).First(user).Error; err != nil {
+				return nil, err
+			}
+			users = append(users, user)
+		}
 	}
 	return users, nil
 }
