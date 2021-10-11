@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
-	"time"
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
@@ -31,7 +30,7 @@ func main() {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.time")*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
 	defer cancel()
 	mongDB, err := storage.NewMongoDBManager(ctx)
 	if err != nil {
