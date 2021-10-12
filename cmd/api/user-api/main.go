@@ -5,11 +5,14 @@ import (
 	"flag"
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
+
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/proto/pb"
+	"ktrain/rambbitmq"
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
+	// "ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
@@ -40,7 +43,8 @@ func main() {
 		return
 	}
 	defer mongDB.Close(ctx)
-
+	rabbitMq, err := rambbitmq.ConectRambbitMQ()
+	defer rabbitMq.Close()
 	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -59,7 +63,7 @@ func main() {
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userClient).Handle())
 		//API handlers
-		userHandler := handler.NewUserHandler(userClient, activityLogRepository)
+		userHandler := handler.NewUserHandler(rabbitMq, userClient, activityLogRepository)
 		monngoHandler := handler.NewActivityLogHandler(activityLogRepository)
 		r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		r.Get("/me", userHandler.GetMyProfile)

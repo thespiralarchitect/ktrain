@@ -16,3 +16,5 @@ require (
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.15
 )
+
+require github.com/rabbitmq/amqp091-go v1.1.0
