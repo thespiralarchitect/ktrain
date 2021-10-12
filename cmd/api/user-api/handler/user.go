@@ -53,7 +53,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.FailOnError(err, "Failed to publish a message")
+		httputil.FailOnError(err, err.Error())
 	}
 	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
 	// if err != nil {
@@ -83,7 +83,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.FailOnError(err, "Failed to publish a message")
+		httputil.FailOnError(err, err.Error())
 	}
 	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
 	// if err != nil {
@@ -102,7 +102,7 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.FailOnError(err, "Failed to publish a message")
+		httputil.FailOnError(err, err.Error())
 	}
 	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
 	// if err != nil {
@@ -139,7 +139,7 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.FailOnError(err, "Failed to publish a message")
+		httputil.FailOnError(err, err.Error())
 	}
 	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
 	// if err != nil {
@@ -164,7 +164,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	ctx := r.Context()
 	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.FailOnError(err, "Failed to publish a message")
+		httputil.FailOnError(err, err.Error())
 	}
 	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
 	// if err != nil {
@@ -211,10 +211,9 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
+	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 
 	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
