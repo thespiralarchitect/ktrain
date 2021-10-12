@@ -41,13 +41,6 @@ func main() {
 	}
 	defer mongDB.Close(ctx)
 
-	psqlDB, err := storage.NewPSQLManager()
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
-	defer psqlDB.Close()
-	
 	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -61,10 +54,10 @@ func main() {
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
-		userRepository := repository.NewUserRepository(psqlDB)
+		// userRepository := repository.NewUserRepository(psqlDB)
 		activityLogRepository := repository.NewActivityLogRepository(mongDB)
 		//Authenticate
-		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
+		r.Use(middleware2.NewDBTokenAuth(userClient).Handle())
 		//API handlers
 		userHandler := handler.NewUserHandler(userClient, activityLogRepository)
 		monngoHandler := handler.NewActivityLogHandler(activityLogRepository)
@@ -73,7 +66,7 @@ func main() {
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Route("/", func(r chi.Router) {
-			r.Use(middleware2.NewDBTokenAuth(userRepository).HandleAdmin())
+			r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
 			r.Post("/users", userHandler.PostNewUser)
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)
