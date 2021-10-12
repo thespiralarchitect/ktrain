@@ -11,7 +11,6 @@ import (
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
-	"ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
@@ -51,7 +50,8 @@ func main() {
 	rabbitMq, err := rambbitmq.ConectRambbitMQ()
 	defer rabbitMq.Close()
 	if err != nil {
-		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
+		log.Fatalf("Failed to connect to RabbitMQ, err: %v", err)
+		return
 	}
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
