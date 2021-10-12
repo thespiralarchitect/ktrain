@@ -12,17 +12,13 @@ import (
 )
 
 type UserHandler struct {
-	userClient pb.UserDMSServiceClient
 	pb.UnimplementedUserDMSServiceServer
-	userRepository        repository.IUserRepository
-	activityLogRepository repository.ActivityLogRepository
+	userRepository repository.IUserRepository
 }
 
-func NewUserHandler(userClient pb.UserDMSServiceClient, userRepository repository.IUserRepository,activityLogRepository repository.ActivityLogRepository)(*UserHandler,error){
+func NewUserHandler( userRepository repository.IUserRepository)(*UserHandler,error){
 	return &UserHandler{
-		userClient:                        userClient,
-		userRepository:                    userRepository,
-		activityLogRepository:             activityLogRepository,
+		userRepository:        userRepository,
 	},nil
 }
 func (h *UserHandler) GetUserByID(ctx context.Context, in *pb.GetUserByIDRequest)(*pb.GetUserByIDResponse, error){
