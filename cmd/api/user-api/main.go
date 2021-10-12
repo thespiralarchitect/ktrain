@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
 	middleware2 "ktrain/cmd/api/user-api/middleware"
+	"ktrain/proto/pb"
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
@@ -16,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -45,6 +47,13 @@ func main() {
 		return
 	}
 	defer psqlDB.Close()
+	
+	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	userClient := pb.NewUserDMSServiceClient(userConn)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +66,7 @@ func main() {
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userRepository).Handle())
 		//API handlers
-		userHandler := handler.NewUserHandler(userRepository, activityLogRepository)
+		userHandler := handler.NewUserHandler(userClient, activityLogRepository)
 		monngoHandler := handler.NewActivityLogHandler(activityLogRepository)
 		r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		r.Get("/me", userHandler.GetMyProfile)
