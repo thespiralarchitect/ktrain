@@ -7,6 +7,7 @@ import (
 	"ktrain/cmd/repository"
 	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
+	"ktrain/rambbitmq"
 	"net/http"
 	"strconv"
 	"time"
@@ -18,12 +19,14 @@ import (
 type userHandler struct {
 	userRepository        repository.IUserRepository
 	activityLogRepository repository.ActivityLogRepository
+	rabbitmq              *rambbitmq.RabbitMqManager
 }
 
-func NewUserHandler(userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
+func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
 	return &userHandler{
 		userRepository:        userRepository,
 		activityLogRepository: activityLogRepository,
+		rabbitmq:              rabbitmq,
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -47,10 +50,13 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err = h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 	_, err = h.userRepository.GetUserByID(int64(id))
 	if err != nil {
@@ -73,10 +79,13 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	err = h.userRepository.DeleteUser(int64(ID))
@@ -88,10 +97,13 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
@@ -121,10 +133,13 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	ctx := r.Context()
-	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 	users, err := h.userRepository.GetListUser(ids)
 	if err != nil {
@@ -142,10 +157,13 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	ctx := r.Context()
-	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err = h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-		return
+		httputil.FailOnError(err, err.Error())
 	}
 
 	user, err := h.userRepository.GetUserByID(int64(userID))
@@ -187,11 +205,15 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
-	if err != nil {
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-		return
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
 	}
+	err = h.rabbitmq.Publish(body)
+	if err != nil {
+		httputil.FailOnError(err, err.Error())
+	}
+
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")

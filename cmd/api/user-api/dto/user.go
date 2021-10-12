@@ -37,3 +37,7 @@ type ActionRequest struct {
 type ActionResponse struct {
 	Action []string `json:"action"`
 }
+type UserActivityLogMessage struct {
+	ID  int64  `json:"id"`
+	Log string `json:"log"`
+}
