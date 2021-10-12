@@ -143,13 +143,12 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 			ids = append(ids, int64(id))
 		}
 	}
-	// ctx := r.Context()
-	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-	// 	return
-	// }
-	// users, err := h.userRepository.GetListUser(ids)
+	ctx := r.Context()
+	_, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
+		return
+	}
 	userIds := &pb.GetListUserRequest{
 		Ids: ids,
 	}
