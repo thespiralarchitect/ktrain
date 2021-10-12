@@ -7,6 +7,7 @@ import (
 	"ktrain/cmd/repository"
 	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
+	"ktrain/rambbitmq"
 	"net/http"
 	"strconv"
 	"time"
@@ -16,16 +17,16 @@ import (
 )
 
 type userHandler struct {
-	userRepository                repository.IUserRepository
-	activityLogRepository         repository.ActivityLogRepository
-	activityLogRabiitMqRepository repository.ActivityLogRambbitMqRepository
+	userRepository        repository.IUserRepository
+	activityLogRepository repository.ActivityLogRepository
+	rabbitmq              *rambbitmq.RabbitMqManager
 }
 
-func NewUserHandler(activityLogRabiitMqRepository repository.ActivityLogRambbitMqRepository, userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
+func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
 	return &userHandler{
-		userRepository:                userRepository,
-		activityLogRepository:         activityLogRepository,
-		activityLogRabiitMqRepository: activityLogRabiitMqRepository,
+		userRepository:        userRepository,
+		activityLogRepository: activityLogRepository,
+		rabbitmq:              rabbitmq,
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +51,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	err = h.activityLogRabiitMqRepository.Publish(ctx.Value("userID").(int64), "Update user")
+	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, "Failed to publish a message")
 	}
@@ -80,7 +81,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	err := h.activityLogRabiitMqRepository.Publish(ctx.Value("userID").(int64), "Update user")
+	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, "Failed to publish a message")
 	}
@@ -99,7 +100,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	err := h.activityLogRabiitMqRepository.Publish(ctx.Value("userID").(int64), "Update user")
+	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, "Failed to publish a message")
 	}
@@ -136,7 +137,7 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	ctx := r.Context()
-	err := h.activityLogRabiitMqRepository.Publish(ctx.Value("userID").(int64), "Update user")
+	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, "Failed to publish a message")
 	}
@@ -161,7 +162,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	ctx := r.Context()
-	err = h.activityLogRabiitMqRepository.Publish(ctx.Value("userID").(int64), "Update user")
+	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, "Failed to publish a message")
 	}
