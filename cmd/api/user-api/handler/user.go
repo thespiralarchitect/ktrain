@@ -54,7 +54,6 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
 		return
 	}
-	// _, err = h.userRepository.GetUserByID(int64(id))
 	pbReq := &pb.GetUserByIDRequest{
 		Id: int64(id),
 	}
@@ -67,9 +66,6 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
 		return
 	}
-	// user := mapper.ToUserModel(&req)
-	// user.ID = int64(id)
-	// resp, err := h.userRepository.UpdateUser(user)
 	resp, err := h.userClient.UpdateUser(r.Context(),(*pb.UpdateUserRequest)(ppUser))
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
@@ -93,7 +89,6 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	// err = h.userRepository.DeleteUser(int64(ID))
 	del := &pb.DeleteUserRequest{
 		Id: int64(ID),
 	}
@@ -111,7 +106,6 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
 		return
 	}
-	// user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	req := &pb.GetUserByIDRequest{
 		Id: ctx.Value("userID").(int64),
 	}
@@ -191,8 +185,6 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return
 	}
-
-	// user, err := h.userRepository.GetUserByID(int64(userID))
 	userId := &pb.GetUserByIDRequest{
 		Id: int64(userID),
 	}
@@ -234,19 +226,12 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
-	// User := &model.User{
-	// 	Fullname: u.Fullname,
-	// 	Username: u.Username,
-	// 	Gender:   u.Gender,
-	// 	Birthday: birthday,
-	// }
 	ctx := r.Context()
 	_, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
 		return
 	}
-	// newUser, err := h.userRepository.CreateUser(User)
 	user := &pb.CreateUserRequest{
 		User: &pb.User{
 			Fullname:  u.Fullname,
