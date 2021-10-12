@@ -12,8 +12,6 @@ import (
 
 type RabbitMqManager struct {
 	*amqp.Connection
-	*amqp.Channel
-	amqp.Queue
 }
 
 func ConectRambbitMQ() (*RabbitMqManager, error) {
@@ -23,11 +21,9 @@ func ConectRambbitMQ() (*RabbitMqManager, error) {
 	}
 	return &RabbitMqManager{
 		Connection: conn,
-		Channel:    &amqp.Channel{},
-		Queue:      amqp.Queue{},
 	}, nil
 }
-func (m *RabbitMqManager) Publish(id int64, log string) error {
+func (m *RabbitMqManager) Publish(body dto.UserActivityLogMessage) error {
 	ch, err := m.Connection.Channel()
 	if err != nil {
 		return err
@@ -44,10 +40,6 @@ func (m *RabbitMqManager) Publish(id int64, log string) error {
 	)
 	if err != nil {
 		return err
-	}
-	body := dto.UserActivityLogMessage{
-		ID:  id,
-		Log: log,
 	}
 	bodyJson, err := json.Marshal(body)
 	if err != nil {

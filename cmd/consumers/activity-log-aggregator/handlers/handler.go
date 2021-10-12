@@ -1,4 +1,4 @@
-package consumers
+package handler
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/repository"
-	"ktrain/pkg/httputil"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -79,22 +78,25 @@ func (m *RabbitMqManager) Consumers(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	err = m.CreateAction(ctx, msgs)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Delivery) error {
 	forever := make(chan bool)
-	go func() {
-		for d := range msgs {
-			log := dto.UserActivityLogMessage{}
-			err := json.Unmarshal(d.Body, &log)
-			if err != nil {
-				httputil.FailOnError(err, err.Error())
-				return
-			}
-			_, err = m.activityLogRepository.CreateAction(ctx, log.ID, log.Log)
-			if err != nil {
-				httputil.FailOnError(err, err.Error())
-				return
-			}
+	for d := range msgs {
+		log := dto.UserActivityLogMessage{}
+		err := json.Unmarshal(d.Body, &log)
+		if err != nil {
+			return err
 		}
-	}()
+		_, err = m.activityLogRepository.CreateAction(ctx, log.ID, log.Log)
+		if err != nil {
+			return err
+		}
+	}
 	<-forever
 	return nil
 }

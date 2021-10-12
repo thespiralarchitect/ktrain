@@ -50,7 +50,11 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err = h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
@@ -75,7 +79,11 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
@@ -89,7 +97,11 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
@@ -121,7 +133,11 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	ctx := r.Context()
-	err := h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err := h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
@@ -141,7 +157,11 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	ctx := r.Context()
-	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err = h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
@@ -185,7 +205,11 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Create new user")
+	body := dto.UserActivityLogMessage{
+		ID:  ctx.Value("userID").(int64),
+		Log: "Update user",
+	}
+	err = h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	consumers "ktrain/cmd/consumers/activity-log"
+	handler "ktrain/cmd/consumers/activity-log-aggregator/handlers"
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
 	"ktrain/pkg/httputil"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	configPath = flag.String("config.file", "cmd/consumers/config.yaml", "Path to configuration file.")
+	configPath = flag.String("config.file", "cmd/consumers/activity-log-aggregator/config.yaml", "Path to configuration file.")
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 	}
 	defer mongDB.Close(ctx)
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
-	rabbitMq, err := consumers.ConectRambbitMQ(activityLogRepository)
+	rabbitMq, err := handler.ConectRambbitMQ(activityLogRepository)
 	defer rabbitMq.Close()
 	if err != nil {
 		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
