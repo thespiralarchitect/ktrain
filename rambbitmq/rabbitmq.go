@@ -1,9 +1,10 @@
 package rambbitmq
 
 import (
+	"encoding/json"
 	"fmt"
+	"ktrain/cmd/api/user-api/dto"
 	"log"
-	"strconv"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/spf13/viper"
@@ -28,10 +29,10 @@ func ConectRambbitMQ() (*RabbitMqManager, error) {
 }
 func (m *RabbitMqManager) Publish(id int64, log string) error {
 	ch, err := m.Connection.Channel()
-	defer ch.Close()
 	if err != nil {
 		return err
 	}
+	defer ch.Close()
 	err = ch.ExchangeDeclare(
 		"activityLog", // name
 		"fanout",      // type
@@ -44,15 +45,22 @@ func (m *RabbitMqManager) Publish(id int64, log string) error {
 	if err != nil {
 		return err
 	}
-	body := strconv.Itoa(int(id)) + " " + log
+	body := dto.UserActivityLogMessage{
+		ID:  id,
+		Log: log,
+	}
+	bodyJson, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
 	err = ch.Publish(
 		"activityLog", // exchange
 		"",            // routing key
 		false,         // mandatory
 		false,         // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(body),
+			ContentType: "application/json",
+			Body:        bodyJson,
 		})
 	if err != nil {
 		return err
@@ -64,8 +72,4 @@ func (m *RabbitMqManager) Close() {
 	if err != nil {
 		log.Fatalf("Could not close server, err: %v", err)
 	}
-	// err = m.Channel.Close()
-	// if err != nil {
-	// 	log.Fatalf("Could not close channel, err: %v", err)
-	// }
 }

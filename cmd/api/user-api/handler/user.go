@@ -49,17 +49,11 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
-
 	ctx := r.Context()
 	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Update user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
-	// 	return
-	// }
 	_, err = h.userRepository.GetUserByID(int64(id))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
@@ -85,11 +79,6 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Delete user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action")
-	// 	return
-	// }
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	err = h.userRepository.DeleteUser(int64(ID))
 	if err != nil {
@@ -104,11 +93,6 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get my profile user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new action ")
-	// 	return
-	// }
 	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	if err != nil {
 		if errors.IsDataNotFound(err) {
@@ -141,11 +125,6 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	// _, err := h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get list user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-	// 	return
-	// }
 	users, err := h.userRepository.GetListUser(ids)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
@@ -166,11 +145,6 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Get infor user")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-	// 	return
-	// }
 
 	user, err := h.userRepository.GetUserByID(int64(userID))
 	if err != nil {
@@ -211,16 +185,11 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: birthday,
 	}
 	ctx := r.Context()
-	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Update user")
+	err = h.rabbitmq.Publish(ctx.Value("userID").(int64), "Create new user")
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
 
-	// _, err = h.activityLogRepository.CreateAction(r.Context(), ctx.Value("userID").(int64), "Create new user ")
-	// if err != nil {
-	// 	httputil.RespondError(w, http.StatusInternalServerError, "Error when creating action ")
-	// 	return
-	// }
 	newUser, err := h.userRepository.CreateUser(User)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
