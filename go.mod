@@ -10,6 +10,8 @@ require (
 	github.com/mitchellh/mapstructure v1.4.2
 	github.com/spf13/viper v1.9.0
 	go.mongodb.org/mongo-driver v1.7.3
+	google.golang.org/grpc v1.40.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gorm.io/driver/postgres v1.1.2
 	gorm.io/gorm v1.21.15
