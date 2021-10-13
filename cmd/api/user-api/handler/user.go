@@ -61,20 +61,24 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	pbReq := &pb.GetUserByIDRequest{
-		Id: int64(id),
+	birthday, _ := time.Parse("2006-01-02", req.Birthday)
+	upReq := &pb.UpdateUserRequest{
+		User: &pb.User{
+			Id:        int64(id),
+			Fullname:  req.Fullname,
+			Username:  req.Username,
+			Gender:    req.Gender,
+			Birthday:  &timestamppb.Timestamp{
+				Seconds: birthday.Unix(),
+			},
+		},
 	}
-	ppUser, err := h.userClient.GetUserByID(r.Context(), pbReq)
+	resp, err := h.userClient.UpdateUser(r.Context(), upReq)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
-			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
+			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
 			return
 		}
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
-		return
-	}
-	resp, err := h.userClient.UpdateUser(r.Context(), (*pb.UpdateUserRequest)(ppUser))
-	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
 		return
 	}
