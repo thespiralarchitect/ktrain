@@ -145,3 +145,24 @@ func (h *UserHandler) CreateUser(ctx context.Context, in *pb.CreateUserRequest) 
 		},
 	}, nil
 }
+func(h *UserHandler) GetUserByUsername(ctx context.Context, in *pb.GetUserByUsernameRequest) (*pb.GetUserByUsernameResponse, error) {
+	user, err := h.userRepository.GetUserByUsername(in.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, err
+	}
+	return &pb.GetUserByUsernameResponse{
+		User: &pb.User{
+			Id:        user.ID,
+			Fullname:  user.Fullname,
+			Username:  user.Username,
+			Gender:    user.Gender,
+			Birthday:  &timestamppb.Timestamp{
+				Seconds: user.Birthday.Unix(),
+			},
+			Password:  user.Password,
+		},
+	}, nil
+}

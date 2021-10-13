@@ -13,6 +13,7 @@ type IUserRepository interface {
 	DeleteUser(id int64) error
 	GetListUser(ids []int64) ([]*model.User, error)
 	CreateUser(newUser *model.User) (*model.User, error)
+	GetUserByUsername(username string) (*model.User, error)
 }
 
 type userRepository struct {
@@ -86,4 +87,11 @@ func (r *userRepository) CreateUser(newUser *model.User) (*model.User, error) {
 		return nil, err
 	}
 	return newUser, nil
+}
+func (r *userRepository) GetUserByUsername(username string) (*model.User, error) {
+	user := &model.User{}
+	if err := r.db.Where(&model.User{Username: username}).First(user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
 }

@@ -80,6 +80,7 @@ func main() {
 			r.Post("/users", userHandler.PostNewUser)
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)
+			r.Post("/login", userHandler.PostLogin)
 		})
 	})
 	fmt.Println("Listen at port: 8080")
