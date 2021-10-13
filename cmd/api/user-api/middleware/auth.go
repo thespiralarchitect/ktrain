@@ -3,20 +3,20 @@ package middleware
 import (
 	"context"
 	"errors"
-	"ktrain/cmd/repository"
 	"ktrain/pkg/httputil"
+	"ktrain/proto/pb"
 	"net/http"
 	"strings"
 )
 
 type keyUserID string
 type dbTokenAuth struct {
-	userRepository repository.IUserRepository
+	userClient pb.UserDMSServiceClient
 }
 
-func NewDBTokenAuth(userRepository repository.IUserRepository) *dbTokenAuth {
+func NewDBTokenAuth(userClient pb.UserDMSServiceClient) *dbTokenAuth {
 	return &dbTokenAuth{
-		userRepository: userRepository,
+		userClient: userClient,
 	}
 }
 
@@ -40,11 +40,15 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	if token == "" {
 		return 0, errors.New("empty token")
 	}
-	result, err := m.userRepository.GetAuthToken(token)
+	// result, err := m.userRepository.GetAuthToken(token)
+	tokenReq := &pb.GetAuthTokenRequest{
+		Token: token,
+	}
+	result, err := m.userClient.GetAuthToken(r.Context(), tokenReq)
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}
-	return result.UserID, nil
+	return result.AuthToken.UserId, nil
 }
 
 func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
@@ -62,11 +66,15 @@ func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 
 func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 	ctx := r.Context()
-	result, err := m.userRepository.GetUserByID(ctx.Value("userID").(int64))
+	// result, err := m.userRepository.GetUserByID(ctx.Value("userID").(int64))
+	getUserReq := &pb.GetUserByIDRequest{
+		Id: ctx.Value("userID").(int64),
+	}
+	result, err := m.userClient.GetUserByID(r.Context(), getUserReq)
 	if err != nil {
 		return err
 	}
-	if !result.IsAdmin {
+	if !result.User.IsAdmin {
 		return errors.New("Permission denied")
 	}
 	return nil

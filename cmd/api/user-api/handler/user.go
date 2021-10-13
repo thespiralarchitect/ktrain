@@ -7,6 +7,7 @@ import (
 	"ktrain/cmd/repository"
 	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
+	"ktrain/proto/pb"
 	"ktrain/rambbitmq"
 	"net/http"
 	"strconv"
@@ -14,17 +15,18 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type userHandler struct {
-	userRepository        repository.IUserRepository
+	userClient            pb.UserDMSServiceClient
 	activityLogRepository repository.ActivityLogRepository
 	rabbitmq              *rambbitmq.RabbitMqManager
 }
 
-func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
+func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userClient pb.UserDMSServiceClient, activityLogRepository repository.ActivityLogRepository) *userHandler {
 	return &userHandler{
-		userRepository:        userRepository,
+		userClient:            userClient,
 		activityLogRepository: activityLogRepository,
 		rabbitmq:              rabbitmq,
 	}
@@ -57,7 +59,10 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	_, err = h.userRepository.GetUserByID(int64(id))
+	pbReq := &pb.GetUserByIDRequest{
+		Id: int64(id),
+	}
+	ppUser, err := h.userClient.GetUserByID(r.Context(), pbReq)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
@@ -66,14 +71,19 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
 		return
 	}
-	user := mapper.ToUserModel(&req)
-	user.ID = int64(id)
-	resp, err := h.userRepository.UpdateUser(user)
+	resp, err := h.userClient.UpdateUser(r.Context(), (*pb.UpdateUserRequest)(ppUser))
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
 		return
 	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(resp))
+	userResponse := &model.User{
+		ID:       resp.User.Id,
+		Fullname: resp.User.Fullname,
+		Username: resp.User.Username,
+		Gender:   resp.User.Gender,
+		Birthday: resp.User.Birthday.AsTime(),
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
 }
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +97,10 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		httputil.FailOnError(err, err.Error())
 	}
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	err = h.userRepository.DeleteUser(int64(ID))
+	del := &pb.DeleteUserRequest{
+		Id: int64(ID),
+	}
+	_, err = h.userClient.DeleteUser(r.Context(), del)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when delete user")
 		return
@@ -104,7 +117,10 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	user, err := h.userRepository.GetUserByID(ctx.Value("userID").(int64))
+	req := &pb.GetUserByIDRequest{
+		Id: ctx.Value("userID").(int64),
+	}
+	user, err := h.userClient.GetUserByID(r.Context(), req)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
@@ -113,7 +129,14 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
+	userResponse := &model.User{
+		ID:       user.User.Id,
+		Fullname: user.User.Fullname,
+		Username: user.User.Username,
+		Gender:   user.User.Gender,
+		Birthday: user.User.Birthday.AsTime(),
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
 }
 
 func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
@@ -140,12 +163,26 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-	users, err := h.userRepository.GetListUser(ids)
+	userIds := &pb.GetListUserRequest{
+		Ids: ids,
+	}
+	users, err := h.userClient.GetListUser(r.Context(), userIds)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
 		return
 	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(users))
+	var usersResponse []*model.User
+	for _, v := range users.Users {
+		userRes := &model.User{
+			ID:       v.Id,
+			Fullname: v.Fullname,
+			Username: v.Username,
+			Gender:   v.Gender,
+			Birthday: v.Birthday.AsTime(),
+		}
+		usersResponse = append(usersResponse, userRes)
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToListUsersResponse(usersResponse))
 }
 
 func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request) {
@@ -164,8 +201,10 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-
-	user, err := h.userRepository.GetUserByID(int64(userID))
+	userId := &pb.GetUserByIDRequest{
+		Id: int64(userID),
+	}
+	user, err := h.userClient.GetUserByID(r.Context(), userId)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			httputil.RespondError(w, http.StatusNotFound, "User not found")
@@ -174,8 +213,14 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
-
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(user))
+	userResponse := &model.User{
+		ID:       user.User.Id,
+		Fullname: user.User.Fullname,
+		Username: user.User.Username,
+		Gender:   user.User.Gender,
+		Birthday: user.User.Birthday.AsTime(),
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
 }
 
 func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
@@ -197,12 +242,6 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
-	User := &model.User{
-		Fullname: u.Fullname,
-		Username: u.Username,
-		Gender:   u.Gender,
-		Birthday: birthday,
-	}
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
 		ID:  ctx.Value("userID").(int64),
@@ -212,11 +251,27 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}
-
-	newUser, err := h.userRepository.CreateUser(User)
+	user := &pb.CreateUserRequest{
+		User: &pb.User{
+			Fullname: u.Fullname,
+			Username: u.Username,
+			Gender:   u.Gender,
+			Birthday: &timestamppb.Timestamp{
+				Seconds: birthday.Unix(),
+			},
+		},
+	}
+	newUser, err := h.userClient.CreateUser(r.Context(), user)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
 		return
 	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(newUser))
+	userResponse := &model.User{
+		ID:       newUser.User.Id,
+		Fullname: newUser.User.Fullname,
+		Username: newUser.User.Username,
+		Gender:   newUser.User.Gender,
+		Birthday: newUser.User.Birthday.AsTime(),
+	}
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
 }
