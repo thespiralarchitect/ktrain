@@ -145,7 +145,7 @@ func (h *UserHandler) CreateUser(ctx context.Context, in *pb.CreateUserRequest) 
 		},
 	}, nil
 }
-func(h *UserHandler) GetUserByUsername(ctx context.Context, in *pb.GetUserByUsernameRequest) (*pb.GetUserByUsernameResponse, error) {
+func (h *UserHandler) GetUserByUsername(ctx context.Context, in *pb.GetUserByUsernameRequest) (*pb.GetUserByUsernameResponse, error) {
 	user, err := h.userRepository.GetUserByUsername(in.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -155,14 +155,14 @@ func(h *UserHandler) GetUserByUsername(ctx context.Context, in *pb.GetUserByUser
 	}
 	return &pb.GetUserByUsernameResponse{
 		User: &pb.User{
-			Id:        user.ID,
-			Fullname:  user.Fullname,
-			Username:  user.Username,
-			Gender:    user.Gender,
-			Birthday:  &timestamppb.Timestamp{
+			Id:       user.ID,
+			Fullname: user.Fullname,
+			Username: user.Username,
+			Gender:   user.Gender,
+			Birthday: &timestamppb.Timestamp{
 				Seconds: user.Birthday.Unix(),
 			},
-			Password:  user.Password,
+			Password: user.Password,
 		},
 	}, nil
 }
