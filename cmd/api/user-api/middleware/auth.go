@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+type ContextKey string
 type dbTokenAuth struct {
 	userClient pb.UserDMSServiceClient
 }
@@ -27,7 +28,8 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
-			ctx := context.WithValue(r.Context(), "userID", userID)
+			var key ContextKey = "userID"
+			ctx := context.WithValue(r.Context(), key, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

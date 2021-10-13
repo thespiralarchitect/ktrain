@@ -12,6 +12,7 @@ import (
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
+	"ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
@@ -47,17 +48,20 @@ func main() {
 		panic(err)
 	}
 	rabbitMq, err := rambbitmq.ConectRambbitMQ()
-	defer rabbitMq.Close()
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ, err: %v", err)
 		return
 	}
-	userClient := pb.NewUserDMSServiceClient(userConn)
 
+	defer rabbitMq.Close()
+	userClient := pb.NewUserDMSServiceClient(userConn)
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
+		_, err := w.Write([]byte("welcome"))
+		if err != nil {
+			httputil.RespondError(w, http.StatusInternalServerError, err.Error())
+		}
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
@@ -79,5 +83,9 @@ func main() {
 		})
 	})
 	fmt.Println("Listen at port: 8080")
-	http.ListenAndServe(":8080", r)
+	err = http.ListenAndServe(":8080", r)
+	if err != nil {
+		log.Fatalf("ListenAndServe(): %v", err)
+		return
+	}
 }
