@@ -40,7 +40,7 @@ func main() {
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := handlers.NewUserHandler(userRepository)
 	if err != nil {
-		log.Fatalf("Error when creae new user handler, err: %v", err)
+		log.Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
 	reflection.Register(s)
