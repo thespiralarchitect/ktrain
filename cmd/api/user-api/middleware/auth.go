@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type keyUserID string
+type ContextKey string
 type dbTokenAuth struct {
 	userRepository repository.IUserRepository
 }
@@ -28,7 +28,7 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
-			var key keyUserID = "userID"
+			var key ContextKey = "userID"
 			ctx := context.WithValue(r.Context(), key, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

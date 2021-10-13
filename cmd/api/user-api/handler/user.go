@@ -20,6 +20,7 @@ type userHandler struct {
 	userRepository        repository.IUserRepository
 	activityLogRepository repository.ActivityLogRepository
 	rabbitmq              *rambbitmq.RabbitMqManager
+	*validator.Validate
 }
 
 func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository repository.IUserRepository, activityLogRepository repository.ActivityLogRepository) *userHandler {
@@ -27,11 +28,11 @@ func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository reposito
 		userRepository:        userRepository,
 		activityLogRepository: activityLogRepository,
 		rabbitmq:              rabbitmq,
+		Validate:              validator.New(),
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	var validate *validator.Validate = validator.New()
 	req := dto.UserRequest{}
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&req, r); err != nil {
@@ -43,7 +44,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	err := validate.Struct(req)
+	err := h.Validate.Struct(req)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
@@ -190,8 +191,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	validate := validator.New()
-	err := validate.Struct(u)
+	err := h.Validate.Struct(u)
 	if err != nil {
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
