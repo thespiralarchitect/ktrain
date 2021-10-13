@@ -12,7 +12,6 @@ import (
 
 	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
-	// "ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
 	"log"
 	"net/http"
@@ -43,15 +42,15 @@ func main() {
 		return
 	}
 	defer mongDB.Close(ctx)
+	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
 	rabbitMq, err := rambbitmq.ConectRambbitMQ()
 	defer rabbitMq.Close()
 	if err != nil {
 		log.Fatalf("Failed to connect to RabbitMQ, err: %v", err)
 		return
-	}
-	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
-	if err != nil {
-		panic(err)
 	}
 	userClient := pb.NewUserDMSServiceClient(userConn)
 
@@ -62,7 +61,6 @@ func main() {
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
-		// userRepository := repository.NewUserRepository(psqlDB)
 		activityLogRepository := repository.NewActivityLogRepository(mongDB)
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userClient).Handle())

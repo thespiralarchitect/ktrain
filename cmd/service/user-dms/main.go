@@ -37,7 +37,6 @@ func main() {
 	}
 	defer psqlDB.Close()
 	userRepository := repository.NewUserRepository(psqlDB)
-	// activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := handlers.NewUserHandler(userRepository)
 	if err != nil {
 		panic(err)
