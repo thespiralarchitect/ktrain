@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+type keyUserID string
 type dbTokenAuth struct {
 	userRepository repository.IUserRepository
 }
@@ -27,7 +28,8 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
-			ctx := context.WithValue(r.Context(), "userID", userID)
+			var key keyUserID = "userID"
+			ctx := context.WithValue(r.Context(), key, userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -64,7 +66,7 @@ func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if result.IsAdmin == false {
+	if !result.IsAdmin {
 		return errors.New("Permission denied")
 	}
 	return nil

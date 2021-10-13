@@ -34,10 +34,10 @@ func main() {
 	defer mongDB.Close(ctx)
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	rabbitMq, err := handler.ConectRambbitMQ(activityLogRepository)
-	defer rabbitMq.Close()
 	if err != nil {
 		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
 	}
+	defer rabbitMq.Close()
 	err = rabbitMq.Consumers(ctx)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())

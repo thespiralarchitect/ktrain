@@ -31,8 +31,7 @@ func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userRepository reposito
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
-	var validate *validator.Validate
-	validate = validator.New()
+	var validate *validator.Validate = validator.New()
 	req := dto.UserRequest{}
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&req, r); err != nil {
