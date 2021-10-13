@@ -45,6 +45,10 @@ func main() {
 	defer mongDB.Close(ctx)
 	rabbitMq, err := rambbitmq.ConectRambbitMQ()
 	defer rabbitMq.Close()
+	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ, err: %v", err)
+		return
+	}
 	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
