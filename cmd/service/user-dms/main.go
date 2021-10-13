@@ -3,6 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"ktrain/cmd/repository"
 	"ktrain/cmd/service/user-dms/handlers"
 	"ktrain/pkg/config"
@@ -10,13 +12,12 @@ import (
 	"ktrain/proto/pb"
 	"log"
 	"net"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 var (
 	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
 )
+
 func main() {
 	flag.Parse()
 	err := config.BindDefault(*configPath)
@@ -42,7 +43,10 @@ func main() {
 		panic(err)
 	}
 	reflection.Register(s)
-	pb.RegisterUserDMSServiceServer(s,h)
+	pb.RegisterUserDMSServiceServer(s, h)
 	fmt.Println("listen port 9000")
-	s.Serve(listen)
+	err = s.Serve(listen)
+	if err != nil {
+		panic(err)
+	}
 }

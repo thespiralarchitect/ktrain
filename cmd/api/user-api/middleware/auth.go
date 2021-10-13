@@ -42,7 +42,7 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	tokenReq := &pb.GetAuthTokenRequest{
 		Token: token,
 	}
-	result, err := m.userClient.GetAuthToken(r.Context(),tokenReq)
+	result, err := m.userClient.GetAuthToken(r.Context(), tokenReq)
 	if err != nil {
 		return 0, errors.New("invalid token")
 	}
@@ -68,11 +68,11 @@ func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 	getUserReq := &pb.GetUserByIDRequest{
 		Id: ctx.Value("userID").(int64),
 	}
-	result, err := m.userClient.GetUserByID(r.Context(),getUserReq)
+	result, err := m.userClient.GetUserByID(r.Context(), getUserReq)
 	if err != nil {
 		return err
 	}
-	if result.User.IsAdmin == false {
+	if !result.User.IsAdmin {
 		return errors.New("Permission denied")
 	}
 	return nil
