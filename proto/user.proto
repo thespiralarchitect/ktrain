@@ -22,6 +22,7 @@ message User {
     string gender = 5;
     google.protobuf.Timestamp birthday = 6;
     repeated AuthToken auth_token = 7;
+    string password = 8;
 }
 message AuthToken {
     int64 id = 1;

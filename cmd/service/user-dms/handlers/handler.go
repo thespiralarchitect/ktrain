@@ -32,6 +32,7 @@ func (h *UserHandler) GetUserByID(ctx context.Context, in *pb.GetUserByIDRequest
 	}
 	return &pb.GetUserByIDResponse{
 		User: &pb.User{
+			IsAdmin:  user.IsAdmin,
 			Id:       user.ID,
 			Fullname: user.Fullname,
 			Username: user.Username,
@@ -121,10 +122,12 @@ func (h *UserHandler) GetListUser(ctx context.Context, in *pb.GetListUserRequest
 }
 func (h *UserHandler) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	userReq := &model.User{
+		IsAdmin:  in.User.IsAdmin,
 		Fullname: in.User.Fullname,
 		Username: in.User.Username,
 		Gender:   in.User.Gender,
 		Birthday: in.User.Birthday.AsTime(),
+		Password: in.User.Password,
 	}
 	newUser, err := h.userRepository.CreateUser(userReq)
 	if err != nil {
