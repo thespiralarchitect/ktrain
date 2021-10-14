@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"ktrain/cmd/model"
 	"log"
 
 	"github.com/spf13/viper"
@@ -28,6 +29,8 @@ func NewPSQLManager() (*PSQLManager, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = db.AutoMigrate(&model.User{},
+		&model.AuthToken{})
 	return &PSQLManager{db.Debug()}, nil
 }
 func (m *PSQLManager) Close() {

@@ -11,7 +11,7 @@ type User struct {
 	Username   string      `gorm:"type:character varying(255)"`
 	Gender     string      `gorm:"type:character varying(10)"`
 	Birthday   time.Time   `gorm:"type:timestamp"`
-	AuthTokens []AuthToken `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	AuthTokens []AuthToken `gorm:"foreignKey:UserID;references:ID"` //constraint:OnUpdate:CASCADE,OnDelete:CASCADE
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }

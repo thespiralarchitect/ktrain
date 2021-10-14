@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"ktrain/cmd/repository"
 	"ktrain/cmd/service/user-dms/handlers"
 	"ktrain/pkg/config"
@@ -12,10 +10,13 @@ import (
 	"ktrain/proto/pb"
 	"log"
 	"net"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 var (
-	configPath = flag.String("config.file", "cmd/api/user-api/config.yaml", "Path to configuration file.")
+	configPath = flag.String("config.file", "cmd/service/user-dms/config.yaml", "Path to configuration file.")
 )
 
 func main() {

@@ -55,6 +55,12 @@ func main() {
 
 	defer rabbitMq.Close()
 	userClient := pb.NewUserDMSServiceClient(userConn)
+	activityConn, err := grpc.Dial(":9001", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	activityClient := pb.NewActivityLogDMSServiceClient(activityConn)
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -69,14 +75,14 @@ func main() {
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userClient).Handle())
 		//API handlers
-		userHandler := handler.NewUserHandler(rabbitMq, userClient, activityLogRepository)
-		monngoHandler := handler.NewActivityLogHandler(activityLogRepository)
+		userHandler := handler.NewUserHandler(rabbitMq, userClient)
+		monngoHandler := handler.NewActivityLogHandler(activityClient, activityLogRepository)
 		r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		r.Get("/me", userHandler.GetMyProfile)
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Route("/", func(r chi.Router) {
-			r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
+			//r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
 			r.Post("/users", userHandler.PostNewUser)
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)

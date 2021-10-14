@@ -8,9 +8,11 @@ import (
 	"ktrain/pkg/config"
 	"ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
+	"ktrain/proto/pb"
 	"log"
 
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -32,8 +34,13 @@ func main() {
 		return
 	}
 	defer mongDB.Close(ctx)
+	activityConn, err := grpc.Dial(":9001", grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	activityClient := pb.NewActivityLogDMSServiceClient(activityConn)
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
-	rabbitMq, err := handler.ConectRambbitMQ(activityLogRepository)
+	rabbitMq, err := handler.ConectRambbitMQ(activityClient, activityLogRepository)
 	if err != nil {
 		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
 	}

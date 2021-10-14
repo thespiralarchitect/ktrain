@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/repository"
+	"ktrain/proto/pb"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -15,9 +16,10 @@ import (
 type RabbitMqManager struct {
 	*amqp.Connection
 	activityLogRepository repository.ActivityLogRepository
+	activityLogClient     pb.ActivityLogDMSServiceClient
 }
 
-func ConectRambbitMQ(activityLogRepository repository.ActivityLogRepository) (*RabbitMqManager, error) {
+func ConectRambbitMQ(activityLogClient pb.ActivityLogDMSServiceClient, activityLogRepository repository.ActivityLogRepository) (*RabbitMqManager, error) {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp:%s", viper.GetString("rabbitmq.host")))
 	if err != nil {
 		return nil, err
@@ -25,6 +27,7 @@ func ConectRambbitMQ(activityLogRepository repository.ActivityLogRepository) (*R
 	return &RabbitMqManager{
 		Connection:            conn,
 		activityLogRepository: activityLogRepository,
+		activityLogClient:     activityLogClient,
 	}, nil
 }
 func (m *RabbitMqManager) Consumers(ctx context.Context) error {
@@ -92,7 +95,13 @@ func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Del
 		if err != nil {
 			return err
 		}
-		_, err = m.activityLogRepository.CreateAction(ctx, log.ID, log.Log)
+		fmt.Println(log)
+		req := &pb.CreateActionRequest{
+			Id:  log.ID,
+			Log: log.Log,
+		}
+		_, err = m.activityLogClient.CreareAction(ctx, req)
+		//_, err = m.activityLogRepository.CreateAction(ctx, log.ID, log.Log)
 		if err != nil {
 			return err
 		}

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package user;
+option go_package = "./pb";
+
+service ActivityLogDMSService {
+    rpc CreareAction(CreateActionRequest) returns (CreateActionResponse);
+    rpc GetAllLogAction(GetLogActionRequest) returns(GetLogActionResponse);
+}
+
+message CreateActionRequest{
+    int64 id=1;
+    string log=2;
+}
+message CreateActionResponse{
+    int64 id=1;
+    string log=2;
+}
+message GetLogActionRequest{
+    int64 id=1;
+}
+message GetLogActionResponse{
+    repeated UserActivityLogMessage userActivityLogMessage= 1;
+}
+message UserActivityLogMessage{
+    int64 id=1;
+    string log=2;
+}
