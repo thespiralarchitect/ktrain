@@ -52,11 +52,13 @@ func (r *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 }
 
 func (r *userRepository) DeleteUser(id int64) error {
-	user, err := r.GetUserByID(id)
-	if err != nil {
+	if err := r.db.Where(&model.AuthToken{UserID: id}).Delete(&model.AuthToken{UserID: id}).Error; err != nil {
 		return err
 	}
-	return r.db.Unscoped().Delete(&user).Error
+	if err := r.db.Where(&model.User{ID: id}).Delete(&model.User{ID: id}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *userRepository) GetListUser(ids []int64) ([]*model.User, error) {
