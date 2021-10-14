@@ -29,7 +29,7 @@ func InitTest() *storage.MongoDBManager {
 	}
 	return mongDB
 }
-func TestUserHandler_CreateAction(t *testing.T) {
+func TestActivityLogHandler_CreateAction(t *testing.T) {
 	BindConfig()
 	mongDB := InitTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
@@ -50,7 +50,7 @@ func TestUserHandler_CreateAction(t *testing.T) {
 
 	t.Log("success")
 }
-func TestUserHandler_GetallLogAction(t *testing.T) {
+func TestActivityLogHandler_GetallLogAction(t *testing.T) {
 	BindConfig()
 	mongDB := InitTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
