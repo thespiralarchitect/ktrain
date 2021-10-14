@@ -76,7 +76,8 @@ func main() {
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Route("/", func(r chi.Router) {
-			r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
+			// r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
+			r.Use(middleware2.NewDBTokenAuth(userClient).HandleJWT())
 			r.Post("/users", userHandler.PostNewUser)
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)

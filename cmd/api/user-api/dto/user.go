@@ -42,7 +42,7 @@ type UserActivityLogMessage struct {
 	ID  int64  `json:"id"`
 	Log string `json:"log"`
 }
-type UserLogin struct {
+type UserLoginRequest struct {
 	Username string `json:"username" validate:"required"`
 	Password string `json:"password" validate:"required"`
 }

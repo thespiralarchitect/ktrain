@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"ktrain/cmd/model"
 	"ktrain/pkg/storage"
 	"ktrain/pkg/tokens"
@@ -42,10 +43,10 @@ func (r *userRepository) GetAuthToken(token string) (*model.AuthToken, error) {
 	return &res, nil
 }
 func (r *userRepository) UpdateUser(user *model.User) (*model.User, error) {
-	if err := r.db.Where(&model.User{ID: user.ID}).Updates(&model.User{Fullname: user.Fullname,
+	if query := r.db.Where(&model.User{ID: user.ID}).Updates(&model.User{Fullname: user.Fullname,
 		Birthday: user.Birthday,
-		Gender:   user.Gender}).Error; err != nil {
-		return nil, err
+		Gender:   user.Gender}).RowsAffected; query == 0 {
+		return nil, errors.New("user not exist")
 	}
 	return user, nil
 }

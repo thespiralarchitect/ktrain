@@ -289,7 +289,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *userHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
-	login := dto.UserLogin{}
+	login := dto.UserLoginRequest{}
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&login, r); err != nil {
 		if err.Error() == "Error reading body request" {
@@ -321,6 +321,16 @@ func (h *userHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusBadRequest, "Password error")
 		return
 	}
+	ss, err := tokens.GetJWT(user.User.Fullname, user.User.Username)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error Create JWT token")
+		return
+	}
+	c := http.Cookie{
+		Name:  "session",
+		Value: ss,
+	}
+	http.SetCookie(w, &c)
 	userResponse := &model.User{
 		ID:       user.User.Id,
 		Fullname: user.User.Fullname,
