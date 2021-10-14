@@ -12,13 +12,15 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func TestUserHandler_DeleteUser(t *testing.T) {
+func BindConfig() {
 	err := config.BindDefault("./config.yaml")
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
-
+}
+func TestUserHandler_DeleteUser(t *testing.T) {
+	BindConfig()
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
@@ -43,12 +45,7 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 	t.Log("success")
 }
 func TestUserHandler_ListUser(t *testing.T) {
-	err := config.BindDefault("./config.yaml")
-	if err != nil {
-		log.Fatalf("Error when binding config, err: %v", err)
-		return
-	}
-
+	BindConfig()
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
@@ -73,12 +70,7 @@ func TestUserHandler_ListUser(t *testing.T) {
 	t.Log("success")
 }
 func TestUserHandler_GetUser(t *testing.T) {
-	err := config.BindDefault("./config.yaml")
-	if err != nil {
-		log.Fatalf("Error when binding config, err: %v", err)
-		return
-	}
-
+	BindConfig()
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
@@ -103,12 +95,7 @@ func TestUserHandler_GetUser(t *testing.T) {
 	t.Log("success")
 }
 func TestUserHandler_UpdateUser(t *testing.T) {
-	err := config.BindDefault("./config.yaml")
-	if err != nil {
-		log.Fatalf("Error when binding config, err: %v", err)
-		return
-	}
-
+	BindConfig()
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)

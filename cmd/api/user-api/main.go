@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
@@ -10,16 +9,13 @@ import (
 	"ktrain/proto/pb"
 	"ktrain/rambbitmq"
 
-	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
 	"ktrain/pkg/httputil"
-	"ktrain/pkg/storage"
 	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 )
 
@@ -35,14 +31,6 @@ func main() {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
-	defer cancel()
-	mongDB, err := storage.NewMongoDBManager(ctx)
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
-	defer mongDB.Close(ctx)
 	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
 	if err != nil {
 		panic(err)
@@ -71,18 +59,17 @@ func main() {
 	})
 	r.Route("/api", func(r chi.Router) {
 		r.Use(middleware.SetHeader("Content-Type", "application/json"))
-		activityLogRepository := repository.NewActivityLogRepository(mongDB)
 		//Authenticate
 		r.Use(middleware2.NewDBTokenAuth(userClient).Handle())
 		//API handlers
 		userHandler := handler.NewUserHandler(rabbitMq, userClient)
-		monngoHandler := handler.NewActivityLogHandler(activityClient, activityLogRepository)
+		monngoHandler := handler.NewActivityLogHandler(activityClient)
 		r.Get("/users/{id}/activities", monngoHandler.GetActivity)
 		r.Get("/me", userHandler.GetMyProfile)
 		r.Get("/users", userHandler.GetListUsers)
 		r.Get("/users/{id}", userHandler.GetInformationUser)
 		r.Route("/", func(r chi.Router) {
-			//r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
+			r.Use(middleware2.NewDBTokenAuth(userClient).HandleAdmin())
 			r.Post("/users", userHandler.PostNewUser)
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)

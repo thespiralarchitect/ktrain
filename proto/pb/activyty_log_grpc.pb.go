@@ -18,7 +18,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ActivityLogDMSServiceClient interface {
-	CreareAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error)
+	CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error)
 	GetAllLogAction(ctx context.Context, in *GetLogActionRequest, opts ...grpc.CallOption) (*GetLogActionResponse, error)
 }
 
@@ -30,9 +30,9 @@ func NewActivityLogDMSServiceClient(cc grpc.ClientConnInterface) ActivityLogDMSS
 	return &activityLogDMSServiceClient{cc}
 }
 
-func (c *activityLogDMSServiceClient) CreareAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error) {
+func (c *activityLogDMSServiceClient) CreateAction(ctx context.Context, in *CreateActionRequest, opts ...grpc.CallOption) (*CreateActionResponse, error) {
 	out := new(CreateActionResponse)
-	err := c.cc.Invoke(ctx, "/user.ActivityLogDMSService/CreareAction", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.ActivityLogDMSService/CreateAction", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +52,7 @@ func (c *activityLogDMSServiceClient) GetAllLogAction(ctx context.Context, in *G
 // All implementations must embed UnimplementedActivityLogDMSServiceServer
 // for forward compatibility
 type ActivityLogDMSServiceServer interface {
-	CreareAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error)
+	CreateAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error)
 	GetAllLogAction(context.Context, *GetLogActionRequest) (*GetLogActionResponse, error)
 	mustEmbedUnimplementedActivityLogDMSServiceServer()
 }
@@ -61,8 +61,8 @@ type ActivityLogDMSServiceServer interface {
 type UnimplementedActivityLogDMSServiceServer struct {
 }
 
-func (UnimplementedActivityLogDMSServiceServer) CreareAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreareAction not implemented")
+func (UnimplementedActivityLogDMSServiceServer) CreateAction(context.Context, *CreateActionRequest) (*CreateActionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAction not implemented")
 }
 func (UnimplementedActivityLogDMSServiceServer) GetAllLogAction(context.Context, *GetLogActionRequest) (*GetLogActionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllLogAction not implemented")
@@ -80,20 +80,20 @@ func RegisterActivityLogDMSServiceServer(s grpc.ServiceRegistrar, srv ActivityLo
 	s.RegisterService(&ActivityLogDMSService_ServiceDesc, srv)
 }
 
-func _ActivityLogDMSService_CreareAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _ActivityLogDMSService_CreateAction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CreateActionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ActivityLogDMSServiceServer).CreareAction(ctx, in)
+		return srv.(ActivityLogDMSServiceServer).CreateAction(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/user.ActivityLogDMSService/CreareAction",
+		FullMethod: "/user.ActivityLogDMSService/CreateAction",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ActivityLogDMSServiceServer).CreareAction(ctx, req.(*CreateActionRequest))
+		return srv.(ActivityLogDMSServiceServer).CreateAction(ctx, req.(*CreateActionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -124,8 +124,8 @@ var ActivityLogDMSService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*ActivityLogDMSServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreareAction",
-			Handler:    _ActivityLogDMSService_CreareAction_Handler,
+			MethodName: "CreateAction",
+			Handler:    _ActivityLogDMSService_CreateAction_Handler,
 		},
 		{
 			MethodName: "GetAllLogAction",

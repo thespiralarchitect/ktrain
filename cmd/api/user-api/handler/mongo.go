@@ -3,28 +3,27 @@ package handler
 import (
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
-	middleware2 "ktrain/cmd/api/user-api/middleware"
-	"ktrain/cmd/repository"
 	"ktrain/pkg/httputil"
 	"ktrain/proto/pb"
 	"net/http"
+	"strconv"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type activityLogHandler struct {
-	//activityLogRepository repository.ActivityLogRepository
 	activityLogClient pb.ActivityLogDMSServiceClient
 }
 
-func NewActivityLogHandler(activityLogClient pb.ActivityLogDMSServiceClient, activityLogRepository repository.ActivityLogRepository) *activityLogHandler {
+func NewActivityLogHandler(activityLogClient pb.ActivityLogDMSServiceClient) *activityLogHandler {
 	return &activityLogHandler{
-		//activityLogRepository: activityLogRepository,
 		activityLogClient: activityLogClient,
 	}
 }
 func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	preq := &pb.GetLogActionRequest{
-		Id: ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Id: int64(id),
 	}
 	action, err := h.activityLogClient.GetAllLogAction(r.Context(), preq)
 	if err != nil {
@@ -32,7 +31,7 @@ func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	resp := []*dto.ActionRequest{}
-	for _, v := range action.UserActivityLogMessage {
+	for _, v := range action.UserActivityLog {
 		resp = append(resp, &dto.ActionRequest{
 			ID:     v.Id,
 			Action: v.Log,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	handler "ktrain/cmd/consumers/activity-log-aggregator/handlers"
-	"ktrain/cmd/repository"
 	"ktrain/pkg/config"
 	"ktrain/pkg/httputil"
 	"ktrain/pkg/storage"
@@ -39,13 +38,12 @@ func main() {
 		panic(err)
 	}
 	activityClient := pb.NewActivityLogDMSServiceClient(activityConn)
-	activityLogRepository := repository.NewActivityLogRepository(mongDB)
-	rabbitMq, err := handler.ConectRambbitMQ(activityClient, activityLogRepository)
+	rabbitMq, err := handler.ConectRambbitMQ()
 	if err != nil {
 		httputil.FailOnError(err, "Failed to connect to RabbitMQ")
 	}
 	defer rabbitMq.Close()
-	err = rabbitMq.Consumers(ctx)
+	err = rabbitMq.Consumers(ctx, activityClient)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
 	}

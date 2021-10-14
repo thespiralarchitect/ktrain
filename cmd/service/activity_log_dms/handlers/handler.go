@@ -16,7 +16,7 @@ func NewActivityLogHandler(activityLogRepository repository.ActivityLogRepositor
 		activityLogRepository: activityLogRepository,
 	}, nil
 }
-func (h *ActivityLogHandler) CreareAction(ctx context.Context, in *pb.CreateActionRequest) (*pb.CreateActionResponse, error) {
+func (h *ActivityLogHandler) CreateAction(ctx context.Context, in *pb.CreateActionRequest) (*pb.CreateActionResponse, error) {
 	action, err := h.activityLogRepository.CreateAction(ctx, in.Id, in.Log)
 	if err != nil {
 		return nil, err
@@ -31,15 +31,15 @@ func (h *ActivityLogHandler) GetAllLogAction(ctx context.Context, in *pb.GetLogA
 	if err != nil {
 		return nil, err
 	}
-	resp := []*pb.UserActivityLogMessage{}
+	resp := []*pb.UserActivityLog{}
 	for _, v := range listaction {
-		action := &pb.UserActivityLogMessage{
+		action := &pb.UserActivityLog{
 			Id:  v.ID,
 			Log: v.Action,
 		}
 		resp = append(resp, action)
 	}
 	return &pb.GetLogActionResponse{
-		UserActivityLogMessage: resp,
+		UserActivityLog: resp,
 	}, nil
 }

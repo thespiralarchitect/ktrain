@@ -20,12 +20,12 @@ func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 		"mongodb:%s",
 		viper.GetString("mongodb.uri"),
 	))
-	// if viper.GetBool("mongodb.hasAuth") {
-	// 	clientOptions.SetAuth(options.Credential{
-	// 		Username: viper.GetString("mongodb.username"),
-	// 		Password: viper.GetString("mongodb.password"),
-	// 	})
-	// }
+	if viper.GetBool("mongodb.hasAuth") {
+		clientOptions.SetAuth(options.Credential{
+			Username: viper.GetString("mongodb.username"),
+			Password: viper.GetString("mongodb.password"),
+		})
+	}
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {

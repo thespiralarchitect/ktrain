@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/pkg/storage"
 
@@ -33,24 +32,15 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 	if err != nil {
 		return nil, err
 	}
-	action1, err := actionCollection.Find(ctx, bson.M{"user_id": id})
-	if err != nil {
-		return nil, err
-	}
-	var allAction []*dto.ActionRequest
-	if err = action1.All(ctx, &allAction); err != nil {
-		return nil, err
-	}
 	resp := dto.UserActivityLogMessage{
 		ID:  id,
 		Log: activityLog,
 	}
-	fmt.Println("ok5", allAction)
 	return &resp, nil
 }
 func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error) {
 	actionCollection := m.manager.Database.Collection("activityLog")
-	action, err := actionCollection.Find(ctx, bson.M{"user_id": id})
+	action, err := actionCollection.Find(ctx, bson.M{"id": id})
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"ktrain/cmd/api/user-api/dto"
-	"ktrain/cmd/repository"
 	"ktrain/proto/pb"
 	"log"
 
@@ -15,22 +14,18 @@ import (
 
 type RabbitMqManager struct {
 	*amqp.Connection
-	activityLogRepository repository.ActivityLogRepository
-	activityLogClient     pb.ActivityLogDMSServiceClient
 }
 
-func ConectRambbitMQ(activityLogClient pb.ActivityLogDMSServiceClient, activityLogRepository repository.ActivityLogRepository) (*RabbitMqManager, error) {
+func ConectRambbitMQ() (*RabbitMqManager, error) {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp:%s", viper.GetString("rabbitmq.host")))
 	if err != nil {
 		return nil, err
 	}
 	return &RabbitMqManager{
-		Connection:            conn,
-		activityLogRepository: activityLogRepository,
-		activityLogClient:     activityLogClient,
+		Connection: conn,
 	}, nil
 }
-func (m *RabbitMqManager) Consumers(ctx context.Context) error {
+func (m *RabbitMqManager) Consumers(ctx context.Context, activityLogClient pb.ActivityLogDMSServiceClient) error {
 	ch, err := m.Connection.Channel()
 	if err != nil {
 		return err
@@ -81,13 +76,13 @@ func (m *RabbitMqManager) Consumers(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	err = m.CreateAction(ctx, msgs)
+	err = m.CreateAction(ctx, msgs, activityLogClient)
 	if err != nil {
 		return err
 	}
 	return nil
 }
-func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Delivery) error {
+func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Delivery, activityLogClient pb.ActivityLogDMSServiceClient) error {
 	forever := make(chan bool)
 	for d := range msgs {
 		log := dto.UserActivityLogMessage{}
@@ -95,13 +90,11 @@ func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Del
 		if err != nil {
 			return err
 		}
-		fmt.Println(log)
 		req := &pb.CreateActionRequest{
 			Id:  log.ID,
 			Log: log.Log,
 		}
-		_, err = m.activityLogClient.CreareAction(ctx, req)
-		//_, err = m.activityLogRepository.CreateAction(ctx, log.ID, log.Log)
+		_, err = activityLogClient.CreateAction(ctx, req)
 		if err != nil {
 			return err
 		}
