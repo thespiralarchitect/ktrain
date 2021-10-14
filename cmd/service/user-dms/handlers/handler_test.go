@@ -12,14 +12,15 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-func BindConfig() {
+func bindConfig() {
 	err := config.BindDefault("./config.yaml")
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
 }
-func InitTest() *storage.PSQLManager {
+func initTest() *storage.PSQLManager {
+	bindConfig()
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
@@ -28,15 +29,13 @@ func InitTest() *storage.PSQLManager {
 	return psqlDB
 }
 func TestUserHandler_DeleteUser(t *testing.T) {
-	BindConfig()
-	psqlDB := InitTest()
+	psqlDB := initTest()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
 	if err != nil {
 		log.Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
-
 	_, err = h.DeleteUser(context.Background(), &pb.DeleteUserRequest{
 		Id: 1,
 	})
@@ -44,20 +43,16 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
 	t.Log("success")
 }
 func TestUserHandler_ListUser(t *testing.T) {
-	BindConfig()
-	psqlDB := InitTest()
-
+	psqlDB := initTest()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
 	if err != nil {
 		log.Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
-
 	_, err = h.GetListUser(context.Background(), &pb.GetListUserRequest{
 		Ids: []int64{1},
 	})
@@ -65,20 +60,16 @@ func TestUserHandler_ListUser(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
 	t.Log("success")
 }
 func TestUserHandler_GetUser(t *testing.T) {
-	BindConfig()
-	psqlDB := InitTest()
-
+	psqlDB := initTest()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
 	if err != nil {
 		log.Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
-
 	_, err = h.GetUserByID(context.Background(), &pb.GetUserByIDRequest{
 		Id: 1,
 	})
@@ -86,20 +77,16 @@ func TestUserHandler_GetUser(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
 	t.Log("success")
 }
 func TestUserHandler_UpdateUser(t *testing.T) {
-	BindConfig()
-	psqlDB := InitTest()
-
+	psqlDB := initTest()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
 	if err != nil {
 		log.Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
-
 	_, err = h.UpdateUser(context.Background(), &pb.UpdateUserRequest{
 		User: &pb.User{
 			IsAdmin:   false,
@@ -115,6 +102,5 @@ func TestUserHandler_UpdateUser(t *testing.T) {
 		t.Error(err)
 		return
 	}
-
 	t.Log("success")
 }

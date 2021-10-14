@@ -12,14 +12,15 @@ import (
 	"github.com/spf13/viper"
 )
 
-func BindConfig() {
+func bindConfig() {
 	err := config.BindDefault("./config.yaml")
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
 }
-func InitTest() *storage.MongoDBManager {
+func initTest() *storage.MongoDBManager {
+	bindConfig()
 	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
 	defer cancel()
 	mongDB, err := storage.NewMongoDBManager(ctx)
@@ -30,8 +31,7 @@ func InitTest() *storage.MongoDBManager {
 	return mongDB
 }
 func TestActivityLogHandler_CreateAction(t *testing.T) {
-	BindConfig()
-	mongDB := InitTest()
+	mongDB := initTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {
@@ -51,8 +51,7 @@ func TestActivityLogHandler_CreateAction(t *testing.T) {
 	t.Log("success")
 }
 func TestActivityLogHandler_GetallLogAction(t *testing.T) {
-	BindConfig()
-	mongDB := InitTest()
+	mongDB := initTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {

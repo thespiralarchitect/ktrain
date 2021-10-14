@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"ktrain/cmd/repository"
-	"ktrain/cmd/service/activity_log_dms/handlers"
+	"ktrain/cmd/service/activity-log-dms/handlers"
 	"ktrain/pkg/config"
 	"ktrain/pkg/storage"
 	"ktrain/proto/pb"
@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	configPath = flag.String("config.file", "cmd/service/activity_log_dms/config.yaml", "Path to configuration file.")
+	configPath = flag.String("config.file", "cmd/service/activity-log-dms/config.yaml", "Path to configuration file.")
 )
 
 func main() {
