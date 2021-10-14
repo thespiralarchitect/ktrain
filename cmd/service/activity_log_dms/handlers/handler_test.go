@@ -19,16 +19,19 @@ func BindConfig() {
 		return
 	}
 }
-func TestUserHandler_CreateAction(t *testing.T) {
-	BindConfig()
+func InitTest() *storage.MongoDBManager {
 	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
 	defer cancel()
 	mongDB, err := storage.NewMongoDBManager(ctx)
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
-		return
+		return nil
 	}
-	defer mongDB.Close(ctx)
+	return mongDB
+}
+func TestUserHandler_CreateAction(t *testing.T) {
+	BindConfig()
+	mongDB := InitTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {
@@ -49,14 +52,7 @@ func TestUserHandler_CreateAction(t *testing.T) {
 }
 func TestUserHandler_GetallLogAction(t *testing.T) {
 	BindConfig()
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
-	defer cancel()
-	mongDB, err := storage.NewMongoDBManager(ctx)
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
-	defer mongDB.Close(ctx)
+	mongDB := InitTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {

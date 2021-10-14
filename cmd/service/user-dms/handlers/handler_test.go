@@ -19,14 +19,17 @@ func BindConfig() {
 		return
 	}
 }
-func TestUserHandler_DeleteUser(t *testing.T) {
-	BindConfig()
+func InitTest() *storage.PSQLManager {
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
-		return
+		return nil
 	}
-
+	return psqlDB
+}
+func TestUserHandler_DeleteUser(t *testing.T) {
+	BindConfig()
+	psqlDB := InitTest()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
 	if err != nil {
@@ -35,7 +38,7 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 	}
 
 	_, err = h.DeleteUser(context.Background(), &pb.DeleteUserRequest{
-		Id: 4,
+		Id: 1,
 	})
 	if err != nil {
 		t.Error(err)
@@ -46,11 +49,7 @@ func TestUserHandler_DeleteUser(t *testing.T) {
 }
 func TestUserHandler_ListUser(t *testing.T) {
 	BindConfig()
-	psqlDB, err := storage.NewPSQLManager()
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
+	psqlDB := InitTest()
 
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
@@ -71,11 +70,7 @@ func TestUserHandler_ListUser(t *testing.T) {
 }
 func TestUserHandler_GetUser(t *testing.T) {
 	BindConfig()
-	psqlDB, err := storage.NewPSQLManager()
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
+	psqlDB := InitTest()
 
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
@@ -96,11 +91,7 @@ func TestUserHandler_GetUser(t *testing.T) {
 }
 func TestUserHandler_UpdateUser(t *testing.T) {
 	BindConfig()
-	psqlDB, err := storage.NewPSQLManager()
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
+	psqlDB := InitTest()
 
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := NewUserHandler(userRepository)
