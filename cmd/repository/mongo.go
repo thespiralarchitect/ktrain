@@ -9,7 +9,7 @@ import (
 )
 
 type ActivityLogRepository interface {
-	CreateAction(ctx context.Context, id int64, action string) (string, error)
+	CreateAction(ctx context.Context, id int64, activityLog string) (*dto.UserActivityLogMessage, error)
 	GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error)
 }
 
@@ -22,7 +22,7 @@ func NewActivityLogRepository(db *storage.MongoDBManager) ActivityLogRepository 
 		manager: db,
 	}
 }
-func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, activityLog string) (string, error) {
+func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, activityLog string) (*dto.UserActivityLogMessage, error) {
 	action := dto.ActionRequest{
 		ID:     id,
 		Action: activityLog,
@@ -30,13 +30,17 @@ func (m *activityLogRepository) CreateAction(ctx context.Context, id int64, acti
 	actionCollection := m.manager.Database.Collection("activityLog")
 	_, err := actionCollection.InsertOne(ctx, action)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return "Inserting document successfully", nil
+	resp := dto.UserActivityLogMessage{
+		ID:  id,
+		Log: activityLog,
+	}
+	return &resp, nil
 }
 func (m *activityLogRepository) GetAllLogAction(ctx context.Context, id int64) ([]*dto.ActionRequest, error) {
 	actionCollection := m.manager.Database.Collection("activityLog")
-	action, err := actionCollection.Find(ctx, bson.M{"user_id": id})
+	action, err := actionCollection.Find(ctx, bson.M{"id": id})
 	if err != nil {
 		return nil, err
 	}

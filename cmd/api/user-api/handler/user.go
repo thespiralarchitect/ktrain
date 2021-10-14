@@ -4,7 +4,6 @@ import (
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/cmd/model"
-	"ktrain/cmd/repository"
 	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
 	"ktrain/proto/pb"
@@ -13,24 +12,24 @@ import (
 	"strconv"
 	"time"
 
+	middleware2 "ktrain/cmd/api/user-api/middleware"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type userHandler struct {
-	userClient            pb.UserDMSServiceClient
-	activityLogRepository repository.ActivityLogRepository
-	rabbitmq              *rambbitmq.RabbitMqManager
-	validator             *validator.Validate
+	userClient pb.UserDMSServiceClient
+	rabbitmq   *rambbitmq.RabbitMqManager
+	validator  *validator.Validate
 }
 
-func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userClient pb.UserDMSServiceClient, activityLogRepository repository.ActivityLogRepository) *userHandler {
+func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userClient pb.UserDMSServiceClient) *userHandler {
 	return &userHandler{
-		userClient:            userClient,
-		activityLogRepository: activityLogRepository,
-		rabbitmq:              rabbitmq,
-		validator:             validator.New(),
+		userClient: userClient,
+		rabbitmq:   rabbitmq,
+		validator:  validator.New(),
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +52,10 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
 		Log: "Update user",
 	}
+
 	err = h.rabbitmq.Publish(body)
 	if err != nil {
 		httputil.FailOnError(err, err.Error())
@@ -90,8 +90,8 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
-		Log: "Update user",
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Log: "Delete user",
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
@@ -111,8 +111,8 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
-		Log: "Update user",
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Log: "Get my profile ",
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
@@ -157,8 +157,8 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
-		Log: "Update user",
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Log: "Get list user",
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
@@ -195,8 +195,8 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	}
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
-		Log: "Update user",
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Log: "Get infor user",
 	}
 	err = h.rabbitmq.Publish(body)
 	if err != nil {
@@ -244,8 +244,8 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	birthday, _ := time.Parse("2006-01-02", u.Birthday)
 	ctx := r.Context()
 	body := dto.UserActivityLogMessage{
-		ID:  ctx.Value("userID").(int64),
-		Log: "Update user",
+		ID:  ctx.Value(middleware2.ContextKey("userID")).(int64),
+		Log: "Create user",
 	}
 	err = h.rabbitmq.Publish(body)
 	if err != nil {

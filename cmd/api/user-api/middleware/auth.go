@@ -40,7 +40,6 @@ func (m *dbTokenAuth) verifyToken(r *http.Request) (int64, error) {
 	if token == "" {
 		return 0, errors.New("empty token")
 	}
-	// result, err := m.userRepository.GetAuthToken(token)
 	tokenReq := &pb.GetAuthTokenRequest{
 		Token: token,
 	}
@@ -66,9 +65,8 @@ func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 
 func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 	ctx := r.Context()
-	// result, err := m.userRepository.GetUserByID(ctx.Value("userID").(int64))
 	getUserReq := &pb.GetUserByIDRequest{
-		Id: ctx.Value("userID").(int64),
+		Id: ctx.Value(ContextKey("userID")).(int64),
 	}
 	result, err := m.userClient.GetUserByID(r.Context(), getUserReq)
 	if err != nil {
