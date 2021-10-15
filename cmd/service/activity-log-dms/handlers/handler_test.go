@@ -12,23 +12,26 @@ import (
 	"github.com/spf13/viper"
 )
 
-func BindConfig() {
+func bindConfig() {
 	err := config.BindDefault("./config.yaml")
 	if err != nil {
 		log.Fatalf("Error when binding config, err: %v", err)
 		return
 	}
 }
-func TestUserHandler_CreateAction(t *testing.T) {
-	BindConfig()
+func initTest() *storage.MongoDBManager {
+	bindConfig()
 	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
 	defer cancel()
 	mongDB, err := storage.NewMongoDBManager(ctx)
 	if err != nil {
 		log.Fatalf("Error when connecting database, err: %v", err)
-		return
+		return nil
 	}
-	defer mongDB.Close(ctx)
+	return mongDB
+}
+func TestActivityLogHandler_CreateAction(t *testing.T) {
+	mongDB := initTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {
@@ -47,16 +50,8 @@ func TestUserHandler_CreateAction(t *testing.T) {
 
 	t.Log("success")
 }
-func TestUserHandler_GetallLogAction(t *testing.T) {
-	BindConfig()
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("mongodb.timeout"))
-	defer cancel()
-	mongDB, err := storage.NewMongoDBManager(ctx)
-	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
-		return
-	}
-	defer mongDB.Close(ctx)
+func TestActivityLogHandler_GetallLogAction(t *testing.T) {
+	mongDB := initTest()
 	activityLogRepository := repository.NewActivityLogRepository(mongDB)
 	h, err := NewActivityLogHandler(activityLogRepository)
 	if err != nil {
