@@ -1,0 +1,2 @@
+2021-10-15T16:52:28.303+0700	ERROR	middleware/auth.go:60	Error verify admin	{"error": "Permission denied"}
+2021-10-15T16:52:45.498+0700	ERROR	middleware/auth.go:29	Error verify token	{"error": "invalid token"}
