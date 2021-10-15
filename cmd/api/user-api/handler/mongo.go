@@ -4,6 +4,7 @@ import (
 	"ktrain/cmd/api/user-api/dto"
 	"ktrain/cmd/api/user-api/mapper"
 	"ktrain/pkg/httputil"
+	"ktrain/pkg/logger"
 	"ktrain/proto/pb"
 	"net/http"
 	"strconv"
@@ -27,6 +28,7 @@ func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request)
 	}
 	action, err := h.activityLogClient.GetAllLogAction(r.Context(), preq)
 	if err != nil {
+		logger.Log().Errorw("Error when getting list action", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting list action")
 		return
 	}

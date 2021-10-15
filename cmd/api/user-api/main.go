@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"ktrain/cmd/api/user-api/handler"
+	"log"
 
 	middleware2 "ktrain/cmd/api/user-api/middleware"
 	"ktrain/proto/pb"
@@ -11,7 +12,7 @@ import (
 
 	"ktrain/pkg/config"
 	"ktrain/pkg/httputil"
-	"log"
+	"ktrain/pkg/logger"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -24,20 +25,27 @@ var (
 )
 
 func main() {
+	sugarLogger := logger.InitLogger()
+	defer func() {
+		if err := sugarLogger.Sync(); err != nil {
+			log.Fatalf("Error when release the buffer,err:%v", err)
+			return
+		}
+	}()
 	// parse command-line flags
 	flag.Parse()
 	err := config.BindDefault(*configPath)
 	if err != nil {
-		log.Fatalf("Error when binding config, err: %v", err)
+		logger.Log().Fatalf("Error when binding config, err: %v", err)
 		return
 	}
 	userConn, err := grpc.Dial(":9000", grpc.WithInsecure())
 	if err != nil {
-		panic(err)
+		logger.Log().Panic(err)
 	}
 	rabbitMq, err := rambbitmq.ConectRambbitMQ()
 	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ, err: %v", err)
+		logger.Log().Fatalf("Failed to connect to RabbitMQ, err: %v", err)
 		return
 	}
 
@@ -45,15 +53,15 @@ func main() {
 	userClient := pb.NewUserDMSServiceClient(userConn)
 	activityConn, err := grpc.Dial(":9001", grpc.WithInsecure())
 	if err != nil {
-		panic(err)
+		logger.Log().Panic(err)
 	}
 	activityClient := pb.NewActivityLogDMSServiceClient(activityConn)
-
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		_, err := w.Write([]byte("welcome"))
 		if err != nil {
+			logger.Log().Errorw("Error to write response,err:%v", err)
 			httputil.RespondError(w, http.StatusInternalServerError, err.Error())
 		}
 	})
@@ -78,7 +86,7 @@ func main() {
 	fmt.Println("Listen at port: 8080")
 	err = http.ListenAndServe(":8080", r)
 	if err != nil {
-		log.Fatalf("ListenAndServe(): %v", err)
+		logger.Log().Fatalf("ListenAndServe(): %v", err)
 		return
 	}
 }

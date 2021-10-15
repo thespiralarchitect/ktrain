@@ -6,6 +6,7 @@ import (
 	"ktrain/cmd/repository"
 	"ktrain/cmd/service/user-dms/handlers"
 	"ktrain/pkg/config"
+	"ktrain/pkg/logger"
 	"ktrain/pkg/storage"
 	"ktrain/proto/pb"
 	"log"
@@ -20,28 +21,35 @@ var (
 )
 
 func main() {
+	sugarLogger := logger.InitLogger()
+	defer func() {
+		if err := sugarLogger.Sync(); err != nil {
+			log.Fatalf("Error when release the buffer,err:%v", err)
+			return
+		}
+	}()
 	flag.Parse()
 	err := config.BindDefault(*configPath)
 	if err != nil {
-		log.Fatalf("Error when binding config, err: %v", err)
+		logger.Log().Fatalf("Error when binding config, err: %v", err)
 		return
 	}
 	listen, err := net.Listen("tcp", ":9000")
 	if err != nil {
-		panic(err)
+		logger.Log().Panic(err)
 	}
 	s := grpc.NewServer()
 
 	psqlDB, err := storage.NewPSQLManager()
 	if err != nil {
-		log.Fatalf("Error when connecting database, err: %v", err)
+		logger.Log().Fatalf("Error when connecting database, err: %v", err)
 		return
 	}
 	defer psqlDB.Close()
 	userRepository := repository.NewUserRepository(psqlDB)
 	h, err := handlers.NewUserHandler(userRepository)
 	if err != nil {
-		log.Fatalf("Error when creating new user handler, err: %v", err)
+		logger.Log().Fatalf("Error when creating new user handler, err: %v", err)
 		return
 	}
 	reflection.Register(s)
@@ -49,6 +57,6 @@ func main() {
 	fmt.Println("listen port 9000")
 	err = s.Serve(listen)
 	if err != nil {
-		panic(err)
+		logger.Log().Panic(err)
 	}
 }

@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
+	"ktrain/pkg/logger"
 
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,6 +40,6 @@ func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 func (m *MongoDBManager) Close(ctx context.Context) {
 	err := m.Client.Disconnect(ctx)
 	if err != nil {
-		log.Fatalf("Could not close storage, err: %v", err)
+		logger.Log().Fatalf("Could not close storage, err: %v", err)
 	}
 }
