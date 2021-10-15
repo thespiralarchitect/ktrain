@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
+	"ktrain/pkg/logger"
 
 	"github.com/spf13/viper"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,12 +20,12 @@ func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 		"mongodb:%s",
 		viper.GetString("mongodb.uri"),
 	))
-	if viper.GetBool("mongodb.hasAuth") {
-		clientOptions.SetAuth(options.Credential{
-			Username: viper.GetString("mongodb.username"),
-			Password: viper.GetString("mongodb.password"),
-		})
-	}
+	// if viper.GetBool("mongodb.hasAuth") {
+	// 	clientOptions.SetAuth(options.Credential{
+	// 		Username: viper.GetString("mongodb.username"),
+	// 		Password: viper.GetString("mongodb.password"),
+	// 	})
+	// }
 
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
@@ -40,6 +40,7 @@ func NewMongoDBManager(ctx context.Context) (*MongoDBManager, error) {
 func (m *MongoDBManager) Close(ctx context.Context) {
 	err := m.Client.Disconnect(ctx)
 	if err != nil {
-		log.Fatalf("Could not close storage, err: %v", err)
+		logger.InitLogger().Fatalf("Could not close storage, err: %v", err)
+		//logger.Fatalf("Could not close storage, err: %v", err)
 	}
 }

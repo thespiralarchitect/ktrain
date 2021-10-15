@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"log"
+	"ktrain/pkg/logger"
 
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -34,6 +34,7 @@ func (m *PSQLManager) Close() {
 	sqlDB, _ := m.Debug().DB()
 	err := sqlDB.Close()
 	if err != nil {
-		log.Fatalf("Could not close storage, err: %v", err)
+		logger.InitLogger().Fatalf("Could not close storage, err: %v", err)
+		//logger.Fatalf("Could not close storage, err: %v", err)
 	}
 }

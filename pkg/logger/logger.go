@@ -1,4 +1,4 @@
-package middleware
+package logger
 
 import (
 	"github.com/natefinch/lumberjack"
@@ -6,13 +6,15 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+var sugarLogger *zap.SugaredLogger
+
 func InitLogger() *zap.SugaredLogger {
 	writeSyncer := getLogWriter()
 	encoder := getEncoder()
 	core := zapcore.NewCore(encoder, writeSyncer, zapcore.DebugLevel)
 
 	logger := zap.New(core, zap.AddCaller())
-	sugarLogger := logger.Sugar()
+	sugarLogger = logger.Sugar()
 	return sugarLogger
 }
 
@@ -22,7 +24,6 @@ func getEncoder() zapcore.Encoder {
 	encoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
-
 func getLogWriter() zapcore.WriteSyncer {
 	lumberJackLogger := &lumberjack.Logger{
 		Filename:   "./test.log",

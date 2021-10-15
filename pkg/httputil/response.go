@@ -2,7 +2,7 @@ package httputil
 
 import (
 	"encoding/json"
-	"log"
+	"ktrain/pkg/logger"
 	"net/http"
 	"strconv"
 )
@@ -54,6 +54,7 @@ func RespondError(w http.ResponseWriter, httpStatusCode int, message string) {
 }
 func FailOnError(err error, msg string) {
 	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
+		logger.InitLogger().Fatalf("%s: %s", msg, err)
+		//logger.Fatalf("%s: %s", msg, err)
 	}
 }

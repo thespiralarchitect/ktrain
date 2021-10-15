@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"ktrain/cmd/api/user-api/dto"
+	"ktrain/pkg/logger"
 	"ktrain/proto/pb"
-	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/spf13/viper"
@@ -105,6 +105,6 @@ func (m *RabbitMqManager) CreateAction(ctx context.Context, msgs <-chan amqp.Del
 func (m *RabbitMqManager) Close() {
 	err := m.Connection.Close()
 	if err != nil {
-		log.Fatalf("Could not close server, err: %v", err)
+		logger.InitLogger().Fatalf("Could not close server, err: %v", err)
 	}
 }

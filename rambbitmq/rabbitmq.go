@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"ktrain/cmd/api/user-api/dto"
-	"log"
+	"ktrain/pkg/logger"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/spf13/viper"
@@ -62,6 +62,7 @@ func (m *RabbitMqManager) Publish(body dto.UserActivityLogMessage) error {
 func (m *RabbitMqManager) Close() {
 	err := m.Connection.Close()
 	if err != nil {
-		log.Fatalf("Could not close server, err: %v", err)
+		logger.InitLogger().Fatalf("Could not close server, err: %v", err)
+		//logger.Fatalf("Could not close server, err: %v", err)
 	}
 }

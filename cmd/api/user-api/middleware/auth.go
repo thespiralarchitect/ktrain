@@ -4,20 +4,18 @@ import (
 	"context"
 	"errors"
 	"ktrain/pkg/httputil"
+	"ktrain/pkg/logger"
 	"ktrain/proto/pb"
 	"net/http"
 	"strings"
-
-	"go.uber.org/zap"
 )
 
 type ContextKey string
 type dbTokenAuth struct {
 	userClient pb.UserDMSServiceClient
-	logger     *zap.SugaredLogger
 }
 
-func NewDBTokenAuth(userClient pb.UserDMSServiceClient, logger *zap.SugaredLogger) *dbTokenAuth {
+func NewDBTokenAuth(userClient pb.UserDMSServiceClient) *dbTokenAuth {
 	return &dbTokenAuth{
 		userClient: userClient,
 	}
@@ -28,7 +26,8 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID, err := m.verifyToken(r)
 			if err != nil {
-				m.logger.Errorw("Error verify token", "error", err)
+				logger.InitLogger().Errorw("Error verify token", "error", err)
+				//m.logger.Errorw("Error verify token", "error", err)
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
@@ -59,7 +58,8 @@ func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := m.verifyAdmin(r)
 			if err != nil {
-				m.logger.Errorw("Error verify admin", "error", err)
+				logger.InitLogger().Errorw("Error verify admin", "error", err)
+				//m.logger.Errorw("Error verify admin", "error", err)
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
