@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"ktrain/pkg/httputil"
-	"ktrain/pkg/tokens"
 	"ktrain/proto/pb"
 	"net/http"
 	"strings"
@@ -77,29 +76,4 @@ func (m *dbTokenAuth) verifyAdmin(r *http.Request) error {
 		return errors.New("Permission denied")
 	}
 	return nil
-}
-func (m *dbTokenAuth) verifyJWTToken(r *http.Request) error {
-	c, err := r.Cookie("session")
-	if err != nil {
-		return err
-	}
-	ss := c.Value
-	_, err = tokens.ParseJWT(ss)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *dbTokenAuth) HandleJWT() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			err := m.verifyJWTToken(r)
-			if err != nil {
-				httputil.RespondError(w, http.StatusForbidden, err.Error())
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	}
 }

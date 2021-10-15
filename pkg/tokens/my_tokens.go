@@ -9,16 +9,13 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const MYKEY = "tovinhtuan"
-
-type myClaims struct {
+type MyClaims struct {
 	jwt.StandardClaims
-	Fullname string
-	Username string
-	Password string
+	UserID int64
 }
 
 func CreateToken(userId int64, username string, birthday time.Time, created_at time.Time) string {
@@ -42,30 +39,29 @@ func ComparePassword(password string, hashedPass []byte) error {
 	}
 	return nil
 }
-func GetJWT(fullname string, username string) (string, error) {
-	claims := myClaims{
+func GetJWT(userId int64) (string, error) {
+	claims := MyClaims{
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Unix(),
+			ExpiresAt: time.Now().Add(10 * time.Minute).Unix(),
 		},
-		Fullname: fullname,
-		Username: username,
+		UserID: userId,
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	ss, err := token.SignedString([]byte(MYKEY))
+	ss, err := token.SignedString([]byte(viper.GetString("key.myKey")))
 	if err != nil {
 		return "", errors.New("couldn't Signedstring")
 	}
 	return ss, nil
 }
 func ParseJWT(cookieValue string) (*jwt.Token, error) {
-	afterVertificationToken, err := jwt.ParseWithClaims(cookieValue, &myClaims{}, func(beforeVertificationToken *jwt.Token) (interface{}, error) {
-		if beforeVertificationToken.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+	afterVertificationToken, err := jwt.ParseWithClaims(cookieValue, &MyClaims{}, func(t *jwt.Token) (interface{}, error) {
+		if t.Method.Alg() != jwt.SigningMethodHS256.Alg() {
 			return nil, errors.New("SOMEONE TRIED TO HACK changed signing method")
 		}
-		return []byte(MYKEY), nil
+		return []byte(viper.GetString("key.myKey")), nil
 	})
 	if err != nil {
-		return nil, errors.New("Couln't parseJWT")
+		return nil, errors.New("couldn't parse")
 	}
 	return afterVertificationToken, nil
 }

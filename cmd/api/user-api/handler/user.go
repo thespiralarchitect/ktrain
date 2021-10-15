@@ -320,22 +320,11 @@ func (h *userHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
 		httputil.RespondError(w, http.StatusBadRequest, "Password error")
 		return
 	}
-	ss, err := tokens.GetJWT(user.User.Fullname, user.User.Username)
+	token, err := tokens.GetJWT(user.User.Id)
 	if err != nil {
 		httputil.RespondError(w, http.StatusInternalServerError, "Error Create JWT token")
 		return
 	}
-	c := http.Cookie{
-		Name:  "session",
-		Value: ss,
-	}
-	http.SetCookie(w, &c)
-	userResponse := &model.User{
-		ID:       user.User.Id,
-		Fullname: user.User.Fullname,
-		Username: user.User.Username,
-		Gender:   user.User.Gender,
-		Birthday: user.User.Birthday.AsTime(),
-	}
-	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
+
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToJWTTokenResponse(token))
 }
