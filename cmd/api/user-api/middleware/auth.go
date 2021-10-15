@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"ktrain/pkg/httputil"
+	"ktrain/pkg/logger"
 	"ktrain/proto/pb"
 	"net/http"
 	"strings"
@@ -25,6 +26,7 @@ func (m *dbTokenAuth) Handle() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID, err := m.verifyToken(r)
 			if err != nil {
+				logger.Log().Errorw("Error verify token", "error", err)
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}
@@ -55,6 +57,7 @@ func (m *dbTokenAuth) HandleAdmin() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			err := m.verifyAdmin(r)
 			if err != nil {
+				logger.Log().Errorw("Error verify admin", "error", err)
 				httputil.RespondError(w, http.StatusForbidden, err.Error())
 				return
 			}

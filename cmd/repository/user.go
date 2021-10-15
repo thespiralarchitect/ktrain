@@ -48,10 +48,9 @@ func (r *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 		Gender:   user.Gender})
 	if q.Error != nil {
 		return nil, q.Error
-	} else {
-		if q.RowsAffected == 0 {
-			return nil, errors.New("no field update value")
-		}
+	}
+	if q.RowsAffected == 0 {
+		return nil, errors.New("no field update value")
 	}
 	return user, nil
 }
