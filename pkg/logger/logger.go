@@ -32,6 +32,5 @@ func getLogWriter() zapcore.WriteSyncer {
 		MaxAge:     30,
 		Compress:   false,
 	}
-
 	return zapcore.AddSync(lumberJackLogger)
 }
