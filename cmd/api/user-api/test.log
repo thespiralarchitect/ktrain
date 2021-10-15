@@ -1,3 +1,0 @@
-2021-10-15T11:02:57.567+0700	ERROR	zap@v1.19.1/sugar.go:191	Ignored key without a value.	{"ignored": "rpc error: code = Unknown desc = connection() error occured during connection handshake: auth error: sasl conversation error: unable to authenticate using mechanism \"SCRAM-SHA-1\": (AuthenticationFailed) Authentication failed."}
-2021-10-15T11:02:57.566+0700	ERROR	handler/mongo.go:33	Error when getting list action,err:%v
-2021-10-15T11:13:40.785+0700	ERROR	handler/mongo.go:33	Error when getting list action	{"error": "rpc error: code = Unknown desc = connection() error occured during connection handshake: auth error: sasl conversation error: unable to authenticate using mechanism \"SCRAM-SHA-1\": (AuthenticationFailed) Authentication failed."}
