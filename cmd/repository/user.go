@@ -46,10 +46,10 @@ func (r *userRepository) UpdateUser(user *model.User) (*model.User, error) {
 	q := r.db.Where(&model.User{ID: user.ID}).Updates(&model.User{Fullname: user.Fullname,
 		Birthday: user.Birthday,
 		Gender:   user.Gender})
-	if err := q.Error; err != nil {
-		return nil, err
+	if q.Error != nil {
+		return nil, q.Error
 	} else {
-		if querry := q.RowsAffected; querry == 0 {
+		if q.RowsAffected == 0 {
 			return nil, errors.New("no field update value")
 		}
 	}
