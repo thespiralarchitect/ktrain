@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
+	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -23,13 +24,15 @@ type userHandler struct {
 	userClient pb.UserDMSServiceClient
 	rabbitmq   *rambbitmq.RabbitMqManager
 	validator  *validator.Validate
+	logger     *zap.SugaredLogger
 }
 
-func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userClient pb.UserDMSServiceClient) *userHandler {
+func NewUserHandler(rabbitmq *rambbitmq.RabbitMqManager, userClient pb.UserDMSServiceClient, logger *zap.SugaredLogger) *userHandler {
 	return &userHandler{
 		userClient: userClient,
 		rabbitmq:   rabbitmq,
 		validator:  validator.New(),
+		logger:     logger,
 	}
 }
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -38,15 +41,18 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&req, r); err != nil {
 		if err.Error() == "Error reading body request" {
+			h.logger.Errorw("Error reading body request", "error", err)
 			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
 		} else {
+			h.logger.Errorw("Error unmarshal body request", "error", err)
 			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
 		}
 		return
 	}
 	err := h.validator.Struct(req)
 	if err != nil {
+		h.logger.Errorw("Error when validate request", "error", err)
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
@@ -58,7 +64,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	err = h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	pbReq := &pb.GetUserByIDRequest{
 		Id: int64(id),
@@ -66,14 +72,17 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	ppUser, err := h.userClient.GetUserByID(r.Context(), pbReq)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
+			h.logger.Errorw("User not found in database", "error", err)
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
 			return
 		}
+		h.logger.Errorw("Error when getting user", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
 		return
 	}
 	resp, err := h.userClient.UpdateUser(r.Context(), (*pb.UpdateUserRequest)(ppUser))
 	if err != nil {
+		h.logger.Errorw("Error when update user", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
 		return
 	}
@@ -95,7 +104,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	ID, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	del := &pb.DeleteUserRequest{
@@ -103,6 +112,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	_, err = h.userClient.DeleteUser(r.Context(), del)
 	if err != nil {
+		h.logger.Errorw("Error when delete user", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when delete user")
 		return
 	}
@@ -116,7 +126,7 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	req := &pb.GetUserByIDRequest{
 		Id: ctx.Value("userID").(int64),
@@ -124,9 +134,11 @@ func (h *userHandler) GetMyProfile(w http.ResponseWriter, r *http.Request) {
 	user, err := h.userClient.GetUserByID(r.Context(), req)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
+			h.logger.Errorw("Your profile not found", "error", err)
 			httputil.RespondError(w, http.StatusNotFound, "Your profile not found")
 			return
 		}
+		h.logger.Errorw("Error when getting user profile,err:%v", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
@@ -147,6 +159,7 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 		req := dto.UserQuery{}
 		var binder httputil.QueryURLBinder
 		if err := binder.BindRequest(&req, r); err != nil {
+			h.logger.Errorw("Error when query users list", "error", err)
 			httputil.RespondError(w, http.StatusInternalServerError, "Error when query users list")
 			return
 		}
@@ -162,13 +175,14 @@ func (h *userHandler) GetListUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	err := h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	userIds := &pb.GetListUserRequest{
 		Ids: ids,
 	}
 	users, err := h.userClient.GetListUser(r.Context(), userIds)
 	if err != nil {
+		h.logger.Errorw("Error when getting users list", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting users list")
 		return
 	}
@@ -200,7 +214,7 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	}
 	err = h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	userId := &pb.GetUserByIDRequest{
 		Id: int64(userID),
@@ -208,9 +222,11 @@ func (h *userHandler) GetInformationUser(w http.ResponseWriter, r *http.Request)
 	user, err := h.userClient.GetUserByID(r.Context(), userId)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
+			h.logger.Errorw("User not found,err:%v", err)
 			httputil.RespondError(w, http.StatusNotFound, "User not found")
 			return
 		}
+		h.logger.Errorw("Error when getting user profile", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
 		return
 	}
@@ -229,15 +245,18 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	var binder httputil.JsonBinder
 	if err := binder.BindRequest(&u, r); err != nil {
 		if err.Error() == "Error reading body request" {
+			h.logger.Errorw("Error reading body request", "error", err)
 			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
 			return
 		} else {
+			h.logger.Errorw("Error unmarshal body request", "error", err)
 			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
 		}
 		return
 	}
 	err := h.validator.Struct(u)
 	if err != nil {
+		h.logger.Errorw("Error when validate request", "error", err)
 		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
 		return
 	}
@@ -249,7 +268,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	err = h.rabbitmq.Publish(body)
 	if err != nil {
-		httputil.FailOnError(err, err.Error())
+		httputil.FailOnError(err, err.Error(), h.logger)
 	}
 	user := &pb.CreateUserRequest{
 		User: &pb.User{
@@ -263,6 +282,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 	}
 	newUser, err := h.userClient.CreateUser(r.Context(), user)
 	if err != nil {
+		h.logger.Errorw("Error when creating new user", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when creating new user")
 		return
 	}

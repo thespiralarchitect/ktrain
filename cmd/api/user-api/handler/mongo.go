@@ -9,15 +9,18 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 )
 
 type activityLogHandler struct {
 	activityLogClient pb.ActivityLogDMSServiceClient
+	logger            *zap.SugaredLogger
 }
 
-func NewActivityLogHandler(activityLogClient pb.ActivityLogDMSServiceClient) *activityLogHandler {
+func NewActivityLogHandler(activityLogClient pb.ActivityLogDMSServiceClient, logger *zap.SugaredLogger) *activityLogHandler {
 	return &activityLogHandler{
 		activityLogClient: activityLogClient,
+		logger:            logger,
 	}
 }
 func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +30,7 @@ func (h *activityLogHandler) GetActivity(w http.ResponseWriter, r *http.Request)
 	}
 	action, err := h.activityLogClient.GetAllLogAction(r.Context(), preq)
 	if err != nil {
+		h.logger.Errorw("Error when getting list action", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting list action")
 		return
 	}
