@@ -17,6 +17,7 @@ type CreateUserRequest struct {
 	Username string `json:"username" validate:"required"`
 	Gender   string `json:"gender" validate:"required"`
 	Birthday string `json:"birthday" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type UserRequest struct {
@@ -40,4 +41,11 @@ type ActionResponse struct {
 type UserActivityLogMessage struct {
 	ID  int64  `json:"id"`
 	Log string `json:"log"`
+}
+type UserLoginRequest struct {
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
+}
+type JWTResponse struct {
+	Token string
 }

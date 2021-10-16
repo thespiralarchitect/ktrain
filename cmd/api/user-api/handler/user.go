@@ -7,6 +7,7 @@ import (
 	"ktrain/pkg/errors"
 	"ktrain/pkg/httputil"
 	"ktrain/pkg/logger"
+	"ktrain/pkg/tokens"
 	"ktrain/proto/pb"
 	"ktrain/rambbitmq"
 	"net/http"
@@ -65,22 +66,25 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		httputil.FailOnError(err, err.Error())
 		return
 	}
-	pbReq := &pb.GetUserByIDRequest{
-		Id: int64(id),
+	birthday, _ := time.Parse("2006-01-02", req.Birthday)
+	upReq := &pb.UpdateUserRequest{
+		User: &pb.User{
+			Id:       int64(id),
+			Fullname: req.Fullname,
+			Username: req.Username,
+			Gender:   req.Gender,
+			Birthday: &timestamppb.Timestamp{
+				Seconds: birthday.Unix(),
+			},
+		},
 	}
-	ppUser, err := h.userClient.GetUserByID(r.Context(), pbReq)
+	resp, err := h.userClient.UpdateUser(r.Context(), upReq)
 	if err != nil {
 		if errors.IsDataNotFound(err) {
 			logger.Log().Errorw("User not found in database", "error", err)
 			httputil.RespondError(w, http.StatusNotFound, "User not found in database")
 			return
 		}
-		logger.Log().Errorw("Error when getting user", "error", err)
-		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user ")
-		return
-	}
-	resp, err := h.userClient.UpdateUser(r.Context(), (*pb.UpdateUserRequest)(ppUser))
-	if err != nil {
 		logger.Log().Errorw("Error when update user", "error", err)
 		httputil.RespondError(w, http.StatusInternalServerError, "Error when update user")
 		return
@@ -275,6 +279,11 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		httputil.FailOnError(err, err.Error())
 		return
 	}
+	bs, err := tokens.HashPassword(u.Password)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when hashing password")
+		return
+	}
 	user := &pb.CreateUserRequest{
 		User: &pb.User{
 			Fullname: u.Fullname,
@@ -283,6 +292,7 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 			Birthday: &timestamppb.Timestamp{
 				Seconds: birthday.Unix(),
 			},
+			Password: string(bs),
 		},
 	}
 	newUser, err := h.userClient.CreateUser(r.Context(), user)
@@ -299,4 +309,46 @@ func (h *userHandler) PostNewUser(w http.ResponseWriter, r *http.Request) {
 		Birthday: newUser.User.Birthday.AsTime(),
 	}
 	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToUserResponse(userResponse))
+}
+
+func (h *userHandler) PostLogin(w http.ResponseWriter, r *http.Request) {
+	login := dto.UserLoginRequest{}
+	var binder httputil.JsonBinder
+	if err := binder.BindRequest(&login, r); err != nil {
+		if err.Error() == "Error reading body request" {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error reading body request")
+			return
+		} else {
+			httputil.RespondError(w, http.StatusInternalServerError, "Error unmarshal body request")
+		}
+		return
+	}
+	err := h.validator.Struct(login)
+	if err != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Error when validate request")
+		return
+	}
+	loginReq := &pb.GetUserByUsernameRequest{
+		Username: login.Username,
+	}
+	user, err := h.userClient.GetUserByUsername(r.Context(), loginReq)
+	if err != nil {
+		if errors.IsDataNotFound(err) {
+			httputil.RespondError(w, http.StatusNotFound, "User not found")
+			return
+		}
+		httputil.RespondError(w, http.StatusInternalServerError, "Error when getting user profile")
+		return
+	}
+	if compare := tokens.ComparePassword(login.Password, []byte(user.User.Password)); compare != nil {
+		httputil.RespondError(w, http.StatusBadRequest, "Password error")
+		return
+	}
+	token, err := tokens.GetJWT(user.User.Id)
+	if err != nil {
+		httputil.RespondError(w, http.StatusInternalServerError, "Error Create JWT token")
+		return
+	}
+
+	httputil.RespondSuccessWithData(w, http.StatusOK, mapper.ToJWTTokenResponse(token))
 }

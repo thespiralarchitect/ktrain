@@ -55,3 +55,9 @@ func ToActionResponse(actions []*dto.ActionRequest) *dto.ActionResponse {
 	}
 	return &listAction
 }
+
+func ToJWTTokenResponse(token string)*dto.JWTResponse{
+	return &dto.JWTResponse{
+		Token: token,
+	}
+}

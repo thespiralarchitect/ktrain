@@ -5,7 +5,7 @@ import (
 )
 
 type User struct {
-	IsAdmin    bool
+	IsAdmin    bool        `gorm:"type:boolean"`
 	ID         int64       `gorm:"type:integer"`
 	Fullname   string      `gorm:"type:character varying(255)"`
 	Username   string      `gorm:"type:character varying(255)"`
@@ -14,6 +14,7 @@ type User struct {
 	AuthTokens []AuthToken `gorm:"foreignKey:UserID;references:ID"` //constraint:OnUpdate:CASCADE,OnDelete:CASCADE
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
+	Password   string `gorm:"type:character varying(255)"`
 }
 
 type AuthToken struct {

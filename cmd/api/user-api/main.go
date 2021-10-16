@@ -82,6 +82,12 @@ func main() {
 			r.Put("/users/{id}", userHandler.UpdateUser)
 			r.Delete("/users/{id}", userHandler.DeleteUser)
 		})
+		r.Post("/login", userHandler.PostLogin)
+		r.Route("/submit", func(r chi.Router) {
+			r.Use(middleware2.NewDBTokenAuth(userClient).HandleJWT())
+			r.Get("/me", userHandler.GetMyProfile)
+			r.Get("/users", userHandler.GetListUsers)
+		})
 	})
 	fmt.Println("Listen at port: 8080")
 	err = http.ListenAndServe(":8080", r)

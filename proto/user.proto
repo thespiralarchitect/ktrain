@@ -13,6 +13,7 @@ service UserDMSService {
     rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
     rpc DeleteUser(DeleteUserRequest) returns (Empty);
     rpc GetListUser(GetListUserRequest) returns (GetListUserResponse);
+    rpc GetUserByUsername(GetUserByUsernameRequest) returns (GetUserByUsernameResponse);
 }
 message User {
     bool   is_admin = 1;
@@ -22,6 +23,7 @@ message User {
     string gender = 5;
     google.protobuf.Timestamp birthday = 6;
     repeated AuthToken auth_token = 7;
+    string password = 8;
 }
 message AuthToken {
     int64 id = 1;
@@ -61,4 +63,10 @@ message GetListUserRequest {
 }
 message GetListUserResponse {
     repeated User users = 1;
+}
+message GetUserByUsernameRequest {
+    string username = 1;
+}
+message GetUserByUsernameResponse {
+    User user = 1;
 }

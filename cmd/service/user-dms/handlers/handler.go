@@ -32,6 +32,7 @@ func (h *UserHandler) GetUserByID(ctx context.Context, in *pb.GetUserByIDRequest
 	}
 	return &pb.GetUserByIDResponse{
 		User: &pb.User{
+			IsAdmin:  user.IsAdmin,
 			Id:       user.ID,
 			Fullname: user.Fullname,
 			Username: user.Username,
@@ -121,10 +122,12 @@ func (h *UserHandler) GetListUser(ctx context.Context, in *pb.GetListUserRequest
 }
 func (h *UserHandler) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
 	userReq := &model.User{
+		IsAdmin:  in.User.IsAdmin,
 		Fullname: in.User.Fullname,
 		Username: in.User.Username,
 		Gender:   in.User.Gender,
 		Birthday: in.User.Birthday.AsTime(),
+		Password: in.User.Password,
 	}
 	newUser, err := h.userRepository.CreateUser(userReq)
 	if err != nil {
@@ -139,6 +142,27 @@ func (h *UserHandler) CreateUser(ctx context.Context, in *pb.CreateUserRequest) 
 			Birthday: &timestamppb.Timestamp{
 				Seconds: newUser.Birthday.Unix(),
 			},
+		},
+	}, nil
+}
+func (h *UserHandler) GetUserByUsername(ctx context.Context, in *pb.GetUserByUsernameRequest) (*pb.GetUserByUsernameResponse, error) {
+	user, err := h.userRepository.GetUserByUsername(in.Username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, err
+	}
+	return &pb.GetUserByUsernameResponse{
+		User: &pb.User{
+			Id:       user.ID,
+			Fullname: user.Fullname,
+			Username: user.Username,
+			Gender:   user.Gender,
+			Birthday: &timestamppb.Timestamp{
+				Seconds: user.Birthday.Unix(),
+			},
+			Password: user.Password,
 		},
 	}, nil
 }

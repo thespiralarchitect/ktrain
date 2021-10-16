@@ -24,6 +24,7 @@ type UserDMSServiceClient interface {
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetListUser(ctx context.Context, in *GetListUserRequest, opts ...grpc.CallOption) (*GetListUserResponse, error)
+	GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*GetUserByUsernameResponse, error)
 }
 
 type userDMSServiceClient struct {
@@ -88,6 +89,15 @@ func (c *userDMSServiceClient) GetListUser(ctx context.Context, in *GetListUserR
 	return out, nil
 }
 
+func (c *userDMSServiceClient) GetUserByUsername(ctx context.Context, in *GetUserByUsernameRequest, opts ...grpc.CallOption) (*GetUserByUsernameResponse, error) {
+	out := new(GetUserByUsernameResponse)
+	err := c.cc.Invoke(ctx, "/user.UserDMSService/GetUserByUsername", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserDMSServiceServer is the server API for UserDMSService service.
 // All implementations must embed UnimplementedUserDMSServiceServer
 // for forward compatibility
@@ -98,6 +108,7 @@ type UserDMSServiceServer interface {
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	DeleteUser(context.Context, *DeleteUserRequest) (*Empty, error)
 	GetListUser(context.Context, *GetListUserRequest) (*GetListUserResponse, error)
+	GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*GetUserByUsernameResponse, error)
 	mustEmbedUnimplementedUserDMSServiceServer()
 }
 
@@ -122,6 +133,9 @@ func (UnimplementedUserDMSServiceServer) DeleteUser(context.Context, *DeleteUser
 }
 func (UnimplementedUserDMSServiceServer) GetListUser(context.Context, *GetListUserRequest) (*GetListUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetListUser not implemented")
+}
+func (UnimplementedUserDMSServiceServer) GetUserByUsername(context.Context, *GetUserByUsernameRequest) (*GetUserByUsernameResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByUsername not implemented")
 }
 func (UnimplementedUserDMSServiceServer) mustEmbedUnimplementedUserDMSServiceServer() {}
 
@@ -244,6 +258,24 @@ func _UserDMSService_GetListUser_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserDMSService_GetUserByUsername_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByUsernameRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserDMSServiceServer).GetUserByUsername(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.UserDMSService/GetUserByUsername",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserDMSServiceServer).GetUserByUsername(ctx, req.(*GetUserByUsernameRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserDMSService_ServiceDesc is the grpc.ServiceDesc for UserDMSService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -274,6 +306,10 @@ var UserDMSService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetListUser",
 			Handler:    _UserDMSService_GetListUser_Handler,
+		},
+		{
+			MethodName: "GetUserByUsername",
+			Handler:    _UserDMSService_GetUserByUsername_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
